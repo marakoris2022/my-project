@@ -4,3 +4,8 @@ export type SignUpDataProps = {
   name: string;
   password: string;
 };
+
+export type SignInDataProps = {
+  email: string;
+  password: string;
+};

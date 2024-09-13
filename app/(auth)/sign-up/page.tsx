@@ -5,30 +5,50 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { FieldValues, useForm } from "react-hook-form";
 import { validateSignUpData } from "./validateSignUpData";
 import { useState } from "react";
-import { createUser } from "@/app/_firebase/auth_signup_password";
 
 export default function SignUp() {
-  const [error, setError] = useState<string[]>([]);
+  const [errorValid, setErrorValid] = useState<string[]>([]);
   const { register, handleSubmit, reset } = useForm();
 
   const onSubmit = async (data: SignUpDataProps | FieldValues) => {
-    setError([]);
+    setErrorValid([]);
+
     const validate = validateSignUpData(data as SignUpDataProps);
     if (validate.length > 0) {
-      setError(validate);
+      setErrorValid(validate);
       return;
     }
+
     try {
-      const respond = await createUser(data.email, data.password, data.name);
-      console.log(`Registration Ok! ${respond.displayName}`);
+      const response = await fetch("api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          name: data.name,
+        }),
+      });
+
+      // Проверка на успешный статус
+      if (!response.ok) {
+        const errorResponse = await response.json(); // Получаем сообщение об ошибке
+        throw new Error(errorResponse.error || "Something went wrong"); // Выбрасываем ошибку с сообщением
+      }
+
+      const result = await response.json();
+      console.log("response", result);
     } catch (error) {
-      setError([(error as Error).message]);
+      console.error("Error occurred:", error.message);
+      setErrorValid([error.message]); // Устанавливаем сообщение об ошибке
     }
   };
 
   function handleReset() {
     reset();
-    setError([]);
+    setErrorValid([]);
   }
 
   return (
@@ -36,6 +56,7 @@ export default function SignUp() {
       <Typography component={"h1"} sx={{ pb: "20px" }}>
         Registration
       </Typography>
+
       <Box component={"form"} onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mb: "15px" }}>
           <TextField label="Name" variant="standard" {...register("name")} />
@@ -68,8 +89,8 @@ export default function SignUp() {
           </Button>
         </Box>
         <Box>
-          {Boolean(error.length > 0) &&
-            error.map((errorItem, i) => {
+          {Boolean(errorValid.length > 0) &&
+            errorValid.map((errorItem, i) => {
               return (
                 <Typography
                   key={`${i}_error`}
