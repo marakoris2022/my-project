@@ -36,11 +36,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: "User created successfully", token });
   } catch (error) {
-    if (error.code === "auth/email-already-exists") {
-      return NextResponse.json({ error: error.message }, { status: 409 });
-    }
-
     // Handle other errors
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: (error as Error).message },
+      { status: 500 }
+    );
   }
 }

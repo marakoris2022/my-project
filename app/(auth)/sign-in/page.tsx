@@ -49,8 +49,8 @@ export default function SignIn() {
 
       router.push("/profile");
     } catch (error) {
-      console.error("Error occurred:", error.message);
-      setErrorValid([error.message]); // Устанавливаем сообщение об ошибке
+      console.error("Error occurred:", (error as Error).message);
+      setErrorValid([(error as Error).message]); // Устанавливаем сообщение об ошибке
     }
   };
 
