@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import "./globals.css";
 import { Container } from "@mui/material";
+import Header from "../_components/Header";
 
 export const metadata: Metadata = {
   title: "My own Project",
@@ -13,10 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
-        <Container>{children}</Container>
-      </body>
-    </html>
+    <Container>
+      <Header />
+      {children}
+    </Container>
   );
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { cookies } from "next/headers";
+import { COOKIES_TOKEN_KEY_NAME } from "@/app/_constants/constants";
 
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
 
     // Set the token in a cookie
     const cookieStore = cookies();
-    cookieStore.set("authToken", token, {
+    cookieStore.set(COOKIES_TOKEN_KEY_NAME, token, {
       httpOnly: true, // Ensures the cookie is not accessible via JavaScript
       secure: process.env.NODE_ENV === "production", // Set to true in production
       sameSite: "strict", // Adjust based on your requirements

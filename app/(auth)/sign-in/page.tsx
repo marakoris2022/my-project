@@ -7,10 +7,12 @@ import { validateSignInData } from "./validateSignInData";
 import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
+import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const { register, handleSubmit, reset } = useForm();
   const [errorValid, setErrorValid] = useState<string[]>([]);
+  const router = useRouter();
 
   const onSubmit = async (data: SignInDataProps | FieldValues) => {
     setErrorValid([]);
@@ -45,8 +47,7 @@ export default function SignIn() {
         throw new Error(errorResponse.error || "Something went wrong"); // Выбрасываем ошибку с сообщением
       }
 
-      const result = await response.json();
-      console.log("response", result);
+      router.push("/profile");
     } catch (error) {
       console.error("Error occurred:", error.message);
       setErrorValid([error.message]); // Устанавливаем сообщение об ошибке

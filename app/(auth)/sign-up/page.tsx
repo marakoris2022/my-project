@@ -5,10 +5,12 @@ import { Box, Button, TextField, Typography } from "@mui/material";
 import { FieldValues, useForm } from "react-hook-form";
 import { validateSignUpData } from "./validateSignUpData";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
   const [errorValid, setErrorValid] = useState<string[]>([]);
   const { register, handleSubmit, reset } = useForm();
+  const router = useRouter();
 
   const onSubmit = async (data: SignUpDataProps | FieldValues) => {
     setErrorValid([]);
@@ -38,8 +40,7 @@ export default function SignUp() {
         throw new Error(errorResponse.error || "Something went wrong"); // Выбрасываем ошибку с сообщением
       }
 
-      const result = await response.json();
-      console.log("response", result);
+      router.push("/profile");
     } catch (error) {
       console.error("Error occurred:", error.message);
       setErrorValid([error.message]); // Устанавливаем сообщение об ошибке

@@ -7,8 +7,7 @@ export default function Header() {
   return (
     <Box>
       <Link href={"/"}>Main</Link>
-      <Link href={"/sign-in"}>SignIn</Link>
-      <Link href={"/sign-up"}>SignUp</Link>
+      <Link href={"/profile"}>Profile</Link>
     </Box>
   );
 }
