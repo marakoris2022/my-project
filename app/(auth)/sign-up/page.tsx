@@ -6,6 +6,8 @@ import { FieldValues, useForm } from "react-hook-form";
 import { validateSignUpData } from "./validateSignUpData";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/app/_firebase/firebaseConfig";
 
 export default function SignUp() {
   const [errorValid, setErrorValid] = useState<string[]>([]);
@@ -21,6 +23,14 @@ export default function SignUp() {
       return;
     }
 
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      data.email,
+      data.password
+    );
+
+    const token = await userCredential.user.getIdToken(true);
+
     try {
       const response = await fetch("api/register", {
         method: "POST",
@@ -28,8 +38,7 @@ export default function SignUp() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: data.email,
-          password: data.password,
+          token,
           name: data.name,
         }),
       });

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import admin from "firebase-admin";
 import { cookies } from "next/headers";
-import { User } from "firebase/auth/web-extension";
 import { COOKIES_TOKEN_KEY_NAME } from "@/app/_constants/constants";
 
 // Initialize Firebase Admin if not already initialized
