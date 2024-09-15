@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
+import Link from "next/link";
 
 export default function SignUp() {
   const [errorValid, setErrorValid] = useState<string[]>([]);
@@ -98,6 +99,11 @@ export default function SignUp() {
             Reset
           </Button>
         </Box>
+        <Link href={"/"}>
+          <Button onClick={handleReset} variant="outlined">
+            Back to Menu
+          </Button>
+        </Link>
         <Box>
           {Boolean(errorValid.length > 0) &&
             errorValid.map((errorItem, i) => {

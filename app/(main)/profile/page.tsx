@@ -15,6 +15,7 @@ export default async function ProfilePage() {
     return (
       <Box>
         <Typography>No User Found</Typography>
+        <Typography fontWeight={600}>Something wrong.</Typography>
       </Box>
     );
 
