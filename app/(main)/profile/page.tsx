@@ -1,9 +1,27 @@
+import { COOKIES_TOKEN_KEY_NAME } from "@/app/_constants/constants";
+import { getUserFromToken } from "@/app/_firebase/getUserFromToken";
 import { Box, Typography } from "@mui/material";
+import { cookies } from "next/headers";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  const token = cookies().get(COOKIES_TOKEN_KEY_NAME);
+  let user = null;
+
+  if (token) {
+    user = await getUserFromToken(token.value);
+  }
+
+  if (!user)
+    return (
+      <Box>
+        <Typography>No User Found</Typography>
+        <Typography fontWeight={600}>Something wrong.</Typography>
+      </Box>
+    );
+
   return (
     <Box>
-      <Typography>ProfilePage</Typography>
+      <Typography>ProfilePage {user.displayName}</Typography>
     </Box>
   );
 }

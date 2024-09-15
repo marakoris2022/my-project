@@ -14,20 +14,13 @@ if (!admin.apps.length) {
   });
 }
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { token }: { token: string } = await req.json();
-
     // // Set the token in a cookie
     const cookieStore = cookies();
-    cookieStore.set(COOKIES_TOKEN_KEY_NAME, token, {
-      httpOnly: true, // Ensures the cookie is not accessible via JavaScript
-      secure: process.env.NODE_ENV === "production", // Set to true in production
-      sameSite: "strict", // Adjust based on your requirements
-      path: "/", // Set the path for the cookie
-    });
+    cookieStore.delete(COOKIES_TOKEN_KEY_NAME);
 
-    return NextResponse.json({ message: "User created successfully", token });
+    return NextResponse.json({ message: "Remove user data from Cookies" });
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message },

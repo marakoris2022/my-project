@@ -8,6 +8,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SignIn() {
   const { register, handleSubmit, reset } = useForm();
@@ -49,8 +50,8 @@ export default function SignIn() {
 
       router.push("/profile");
     } catch (error) {
-      console.error("Error occurred:", error.message);
-      setErrorValid([error.message]); // Устанавливаем сообщение об ошибке
+      console.error("Error occurred:", (error as Error).message);
+      setErrorValid([(error as Error).message]); // Устанавливаем сообщение об ошибке
     }
   };
 
@@ -85,6 +86,11 @@ export default function SignIn() {
             Reset
           </Button>
         </Box>
+        <Link href={"/"}>
+          <Button onClick={handleReset} variant="outlined">
+            Back to Menu
+          </Button>
+        </Link>
         <Box>
           {Boolean(errorValid.length) && (
             <Box>
