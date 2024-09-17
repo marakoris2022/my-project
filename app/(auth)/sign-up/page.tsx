@@ -3,63 +3,19 @@
 import { SignUpDataProps } from "@/app/_interface/interface";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { FieldValues, useForm } from "react-hook-form";
-import { validateSignUpData } from "./validateSignUpData";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
 import Link from "next/link";
 
 export default function SignUp() {
-  const [errorValid, setErrorValid] = useState<string[]>([]);
   const { register, handleSubmit, reset } = useForm();
-  const router = useRouter();
 
   const onSubmit = async (data: SignUpDataProps | FieldValues) => {
-    setErrorValid([]);
-
-    const validate = validateSignUpData(data as SignUpDataProps);
-    if (validate.length > 0) {
-      setErrorValid(validate);
-      return;
-    }
-
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
-      data.email,
-      data.password
-    );
-
-    const token = await userCredential.user.getIdToken(true);
-
-    try {
-      const response = await fetch("api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token,
-          name: data.name,
-        }),
-      });
-
-      // Проверка на успешный статус
-      if (!response.ok) {
-        const errorResponse = await response.json(); // Получаем сообщение об ошибке
-        throw new Error(errorResponse.error || "Something went wrong"); // Выбрасываем ошибку с сообщением
-      }
-
-      router.push("/profile");
-    } catch (error) {
-      console.error("Error occurred:", (error as Error).message);
-      setErrorValid([(error as Error).message]); // Устанавливаем сообщение об ошибке
-    }
+    await createUserWithEmailAndPassword(auth, data.email, data.password);
   };
 
   function handleReset() {
     reset();
-    setErrorValid([]);
   }
 
   return (
@@ -104,21 +60,6 @@ export default function SignUp() {
             Back to Menu
           </Button>
         </Link>
-        <Box>
-          {Boolean(errorValid.length > 0) &&
-            errorValid.map((errorItem, i) => {
-              return (
-                <Typography
-                  key={`${i}_error`}
-                  component={"p"}
-                  sx={{ color: "red" }}
-                  fontSize={"14px"}
-                >
-                  {errorItem}
-                </Typography>
-              );
-            })}
-        </Box>
       </Box>
     </Box>
   );

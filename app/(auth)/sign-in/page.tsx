@@ -3,61 +3,21 @@
 import { SignInDataProps } from "@/app/_interface/interface";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { FieldValues, useForm } from "react-hook-form";
-import { validateSignInData } from "./validateSignInData";
-import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SignIn() {
   const { register, handleSubmit, reset } = useForm();
-  const [errorValid, setErrorValid] = useState<string[]>([]);
-  const router = useRouter();
 
   const onSubmit = async (data: SignInDataProps | FieldValues) => {
-    setErrorValid([]);
-    const isErrorArray = validateSignInData(data as SignInDataProps);
-    if (isErrorArray.length > 0) {
-      setErrorValid(isErrorArray);
-      return;
-    }
-
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-
-      const token = await userCredential.user.getIdToken(true);
-
-      const response = await fetch("api/sign-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token: token,
-        }),
-      });
-
-      // Проверка на успешный статус
-      if (!response.ok) {
-        const errorResponse = await response.json(); // Получаем сообщение об ошибке
-        throw new Error(errorResponse.error || "Something went wrong"); // Выбрасываем ошибку с сообщением
-      }
-
-      router.push("/profile");
-    } catch (error) {
-      console.error("Error occurred:", (error as Error).message);
-      setErrorValid([(error as Error).message]); // Устанавливаем сообщение об ошибке
-    }
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+    } catch {}
   };
 
   function handleReset() {
     reset();
-    setErrorValid([]);
   }
 
   return (
@@ -91,19 +51,6 @@ export default function SignIn() {
             Back to Menu
           </Button>
         </Link>
-        <Box>
-          {Boolean(errorValid.length) && (
-            <Box>
-              <Typography
-                component={"p"}
-                sx={{ color: "red" }}
-                fontSize={"14px"}
-              >
-                {errorValid}
-              </Typography>
-            </Box>
-          )}
-        </Box>
       </Box>
     </Box>
   );
