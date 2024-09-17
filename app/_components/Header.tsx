@@ -1,27 +1,30 @@
 "use client";
 
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Container, Typography } from "@mui/material";
 import Link from "next/link";
-import SignOut from "./SignOut";
-import { useEffect, useState } from "react";
+import { useAuth } from "../_customHooks/useAuth";
 import { useRouter } from "next/navigation";
-import { auth } from "@/app/_firebase/firebaseConfig";
-import { onAuthStateChanged } from "firebase/auth";
+import { signOut } from "firebase/auth";
+import { auth } from "../_firebase/firebaseConfig";
+import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
+import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
+import HouseIcon from "@mui/icons-material/House";
+import HowToRegIcon from "@mui/icons-material/HowToReg";
+import AddReactionIcon from "@mui/icons-material/AddReaction";
 
 export default function Header() {
+  const { user, loading } = useAuth();
+
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        router.push("/"); // Переход на страницу входа
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe(); // Очистка подписки
-  }, [router]);
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -32,10 +35,64 @@ export default function Header() {
   }
 
   return (
-    <Box>
-      <Link href={"/"}>Main</Link>
-      <Link href={"/profile"}>Profile</Link>
-      <SignOut />
+    <Box sx={{ backgroundColor: "lightblue" }}>
+      <Container
+        sx={{ display: "flex", justifyContent: "flex-end", padding: "10px" }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "row", gap: "15px" }}>
+          {user ? (
+            <>
+              <Link href={"/"}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  endIcon={<HouseIcon />}
+                >
+                  Main
+                </Button>
+              </Link>
+              <Link href={"/profile"}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  endIcon={<AssignmentIndIcon />}
+                >
+                  Profile
+                </Button>
+              </Link>
+              <Button
+                onClick={handleSignOut}
+                variant="contained"
+                size="small"
+                endIcon={<MeetingRoomIcon />}
+              >
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href={"/sign-in"}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  endIcon={<HowToRegIcon />}
+                >
+                  Sign In
+                </Button>
+              </Link>
+              <Link href={"/sign-up"}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  endIcon={<AddReactionIcon />}
+                >
+                  Sign Up
+                </Button>
+              </Link>
+            </>
+          )}
+        </Box>
+      </Container>
     </Box>
   );
 }

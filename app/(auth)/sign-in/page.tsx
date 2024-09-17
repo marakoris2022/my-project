@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FirebaseAuthError } from "firebase-admin/auth";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/_customHooks/useAuth";
 
 export default function SignIn() {
   const {
@@ -19,8 +20,17 @@ export default function SignIn() {
   } = useForm();
 
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const { user, loading } = useAuth();
 
   const router = useRouter();
+
+  if (loading) {
+    return <Typography>Loading...</Typography>; // Показываем индикатор загрузки
+  }
+
+  if (!loading && user) {
+    router.push("/");
+  }
 
   const onSubmit = async (data: SignInDataProps | FieldValues) => {
     setFirebaseError(null); // Сброс ошибки перед новой попыткой
