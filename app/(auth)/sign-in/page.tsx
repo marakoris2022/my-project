@@ -6,18 +6,41 @@ import { FieldValues, useForm } from "react-hook-form";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
 import Link from "next/link";
+import { useState } from "react";
+import { FirebaseAuthError } from "firebase-admin/auth";
 
 export default function SignIn() {
-  const { register, handleSubmit, reset } = useForm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
   const onSubmit = async (data: SignInDataProps | FieldValues) => {
+    setFirebaseError(null); // Сброс ошибки перед новой попыткой
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-    } catch {}
+    } catch (error) {
+      // Обработка ошибок Firebase
+      switch ((error as FirebaseAuthError).code) {
+        case "auth/user-not-found":
+          setFirebaseError("User not found. Please check your email.");
+          break;
+        case "auth/wrong-password":
+          setFirebaseError("Incorrect password. Please try again.");
+          break;
+        default:
+          setFirebaseError("Something went wrong. Please try again.");
+      }
+    }
   };
 
   function handleReset() {
     reset();
+    setFirebaseError(null); // Сброс ошибки при сбросе формы
   }
 
   return (
@@ -28,16 +51,44 @@ export default function SignIn() {
 
       <Box component={"form"} onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mb: "15px" }}>
-          <TextField label="E-mail" variant="standard" {...register("email")} />
+          <TextField
+            label="E-mail"
+            variant="standard"
+            {...register("email", {
+              required: "E-mail is required",
+              pattern: {
+                value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/g,
+                message: "Invalid e-mail format",
+              },
+            })}
+            error={!!errors.email}
+            helperText={errors.email?.message?.toString() || ""}
+          />
         </Box>
         <Box sx={{ mb: "15px" }}>
           <TextField
             label="Password"
             variant="standard"
             type="password"
-            {...register("password")}
+            {...register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters long",
+              },
+            })}
+            error={!!errors.password}
+            helperText={errors.password?.message?.toString() || ""}
           />
         </Box>
+
+        {/* Отображение ошибок Firebase */}
+        {firebaseError && (
+          <Typography color="error" sx={{ mb: "15px" }}>
+            {firebaseError}
+          </Typography>
+        )}
+
         <Box sx={{ mb: "20px" }}>
           <Button sx={{ mr: "15px" }} variant="contained" type="submit">
             Submit

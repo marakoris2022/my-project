@@ -6,16 +6,40 @@ import { FieldValues, useForm } from "react-hook-form";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
 import Link from "next/link";
+import { useState } from "react";
+import { FirebaseAuthError } from "firebase-admin/auth";
 
 export default function SignUp() {
-  const { register, handleSubmit, reset } = useForm();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
   const onSubmit = async (data: SignUpDataProps | FieldValues) => {
-    await createUserWithEmailAndPassword(auth, data.email, data.password);
+    setFirebaseError(null); // Сброс ошибок перед новой попыткой
+    try {
+      if (data.password !== data.confirmPassword) {
+        throw new Error("Passwords do not match");
+      }
+      await createUserWithEmailAndPassword(auth, data.email, data.password);
+    } catch (error) {
+      // Обработка ошибок Firebase
+      setFirebaseError(
+        (error as FirebaseAuthError).code === "auth/email-already-in-use"
+          ? "This email is already registered."
+          : (error as FirebaseAuthError).message ||
+              "Something went wrong. Please try again."
+      );
+    }
   };
 
   function handleReset() {
     reset();
+    setFirebaseError(null); // Сброс ошибок при сбросе формы
   }
 
   return (
@@ -26,17 +50,49 @@ export default function SignUp() {
 
       <Box component={"form"} onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mb: "15px" }}>
-          <TextField label="Name" variant="standard" {...register("name")} />
+          <TextField
+            label="Name"
+            variant="standard"
+            {...register("name", {
+              required: "Name is required",
+              minLength: {
+                value: 2,
+                message: "Name must be at least 2 characters long",
+              },
+            })}
+            error={!!errors.name}
+            helperText={errors.name?.message?.toString() || ""}
+          />
         </Box>
         <Box sx={{ mb: "15px" }}>
-          <TextField label="E-mail" variant="standard" {...register("email")} />
+          <TextField
+            label="E-mail"
+            variant="standard"
+            {...register("email", {
+              required: "E-mail is required",
+              pattern: {
+                value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/g,
+                message: "Invalid e-mail format",
+              },
+            })}
+            error={!!errors.email}
+            helperText={errors.email?.message?.toString() || ""}
+          />
         </Box>
         <Box sx={{ mb: "15px" }}>
           <TextField
             label="Password"
             variant="standard"
             type="password"
-            {...register("password")}
+            {...register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters long",
+              },
+            })}
+            error={!!errors.password}
+            helperText={errors.password?.message?.toString() || ""}
           />
         </Box>
         <Box sx={{ mb: "20px" }}>
@@ -44,9 +100,21 @@ export default function SignUp() {
             label="Confirm password"
             variant="standard"
             type="password"
-            {...register("confirmPassword")}
+            {...register("confirmPassword", {
+              required: "Please confirm your password",
+            })}
+            error={!!errors.confirmPassword}
+            helperText={errors.confirmPassword?.message?.toString() || ""}
           />
         </Box>
+
+        {/* Отображение ошибок Firebase */}
+        {firebaseError && (
+          <Typography color="error" sx={{ mb: "15px" }}>
+            {firebaseError}
+          </Typography>
+        )}
+
         <Box sx={{ mb: "20px" }}>
           <Button sx={{ mr: "15px" }} variant="contained" type="submit">
             Submit
