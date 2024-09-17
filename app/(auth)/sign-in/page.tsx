@@ -8,6 +8,7 @@ import { auth } from "@/app/_firebase/firebaseConfig";
 import Link from "next/link";
 import { useState } from "react";
 import { FirebaseAuthError } from "firebase-admin/auth";
+import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const {
@@ -19,10 +20,13 @@ export default function SignIn() {
 
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
 
+  const router = useRouter();
+
   const onSubmit = async (data: SignInDataProps | FieldValues) => {
     setFirebaseError(null); // Сброс ошибки перед новой попыткой
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
+      router.push("/profile");
     } catch (error) {
       // Обработка ошибок Firebase
       switch ((error as FirebaseAuthError).code) {

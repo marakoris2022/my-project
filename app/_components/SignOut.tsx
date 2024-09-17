@@ -1,28 +1,25 @@
 "use client";
 
 import { Box, Button } from "@mui/material";
+import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import { auth } from "../_firebase/firebaseConfig";
 
 export default function SignOut() {
   const router = useRouter();
 
-  async function handleClick() {
+  const handleSignOut = async () => {
     try {
-      await fetch("api/sign-out", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      await signOut(auth);
       router.push("/");
     } catch (error) {
-      console.error((error as Error).message);
+      console.error("Error signing out:", error);
     }
-  }
+  };
 
   return (
     <Box>
-      <Button onClick={handleClick}>Sign Out</Button>
+      <Button onClick={handleSignOut}>Sign Out</Button>
     </Box>
   );
 }

@@ -3,11 +3,12 @@
 import { SignUpDataProps } from "@/app/_interface/interface";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { FieldValues, useForm } from "react-hook-form";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
 import Link from "next/link";
 import { useState } from "react";
 import { FirebaseAuthError } from "firebase-admin/auth";
+import { useRouter } from "next/navigation";
 
 export default function SignUp() {
   const {
@@ -18,6 +19,7 @@ export default function SignUp() {
   } = useForm();
 
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const router = useRouter();
 
   const onSubmit = async (data: SignUpDataProps | FieldValues) => {
     setFirebaseError(null); // Сброс ошибок перед новой попыткой
@@ -25,7 +27,21 @@ export default function SignUp() {
       if (data.password !== data.confirmPassword) {
         throw new Error("Passwords do not match");
       }
-      await createUserWithEmailAndPassword(auth, data.email, data.password);
+      // Создание пользователя
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
+      const user = userCredential.user;
+
+      // Обновление профиля пользователя с именем
+      await updateProfile(user, {
+        displayName: data.name,
+      });
+
+      // Перенаправление после успешной регистрации
+      router.push("/");
     } catch (error) {
       // Обработка ошибок Firebase
       setFirebaseError(
