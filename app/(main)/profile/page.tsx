@@ -1,26 +1,41 @@
 "use client";
 
-import { Box, Button, Container, TextField, Typography } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import { useAuth } from "@/app/_customHooks/useAuth";
-import { FormEvent, useState } from "react";
-import { upsertUserData } from "@/app/_firebase/firestoreAPI";
+import { useEffect, useState } from "react";
+import { fetchUserData } from "@/app/_firebase/clientFirestireApi";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
-  const [testValue, setTestValue] = useState("");
-  const [testKey, setTestKey] = useState("");
+  const [fetchedData, setFetchedData] = useState<
+    Record<string, string> | null | undefined
+  >(undefined);
 
-  if (loading) {
+  useEffect(() => {
+    if (user) {
+      (async () => {
+        const res = await fetchUserData(user.uid);
+        setFetchedData(res ? res[0] : null);
+        console.log(user.uid);
+      })();
+    }
+  }, [user]);
+
+  if (loading || fetchedData === undefined) {
     return <Typography>Loading...</Typography>; // Показываем индикатор загрузки
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    await upsertUserData(user!.uid, {
-      [testKey + "b"]: testValue + "a",
-      [testKey]: testValue,
-    });
-  }
+  if (!fetchedData)
+    return (
+      <Box sx={{ backgroundColor: "lightgray", height: "100vh" }}>
+        <Container>
+          <Box>
+            <Typography>Something wrong.</Typography>
+            <Typography>Cant get user Data.</Typography>
+          </Box>
+        </Container>
+      </Box>
+    );
 
   return (
     <Box sx={{ backgroundColor: "lightgray", height: "100vh" }}>
@@ -28,35 +43,12 @@ export default function ProfilePage() {
         <Box>
           <Typography>ProfilePage</Typography>
         </Box>
-        <Box
-          component={"form"}
-          onSubmit={handleSubmit}
-          sx={{ display: "flex", flexDirection: "column", gap: "25px" }}
-        >
-          <Box>
-            <TextField
-              label="testKey"
-              variant="standard"
-              value={testKey}
-              onChange={(e) => setTestKey(e.target.value)}
-            />
-          </Box>
-          <Box>
-            <TextField
-              label="testValue"
-              variant="standard"
-              value={testValue}
-              onChange={(e) => setTestValue(e.target.value)}
-            />
-          </Box>
-          <Button
-            sx={{ width: "fit-content" }}
-            size="small"
-            type="submit"
-            variant="outlined"
-          >
-            Send
-          </Button>
+        <Box>
+          <Typography>
+            {Boolean(fetchedData["chosenPokemon"])
+              ? "Pokemon is set!"
+              : "You need to choose Pokemon."}
+          </Typography>
         </Box>
       </Container>
     </Box>
