@@ -14,7 +14,6 @@ export async function saveUserData(
 
     const result = await response.json();
     if (response.ok) {
-      console.log("User data saved:", result);
       return result; // Return the result for further use if needed
     } else {
       console.error("Error saving user data:", result);
@@ -36,7 +35,6 @@ export async function fetchUserData(userId: string) {
 
     const result = await response.json();
     if (response.ok) {
-      console.log("Fetched user data:", result);
       return result; // Return the data for further use
     } else {
       console.error("Error fetching user data:", result);
@@ -62,7 +60,6 @@ export async function updateUserData(
 
     const result = await response.json();
     if (response.ok) {
-      console.log("User data updated successfully:", result);
       return result; // Return the result for further use
     } else {
       console.error("Error updating user data:", result);
