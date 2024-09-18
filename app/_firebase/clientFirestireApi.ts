@@ -1,3 +1,5 @@
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api"; // Default to '/api' if env variable is not set
+
 // Save user data (POST)
 export async function saveUserData(
   userId: string,
@@ -5,7 +7,7 @@ export async function saveUserData(
   data: Record<string, any>
 ) {
   try {
-    const response = await fetch("/api/user", {
+    const response = await fetch(apiUrl + "/user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -28,7 +30,7 @@ export async function saveUserData(
 export async function fetchUserData(userId: string) {
   try {
     const response = await fetch(
-      `/api/user?userId=${encodeURIComponent(userId)}`,
+      `${apiUrl}/user?userId=${encodeURIComponent(userId)}`,
       {
         method: "GET",
       }
