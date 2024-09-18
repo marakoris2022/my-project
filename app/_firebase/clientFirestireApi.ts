@@ -1,3 +1,5 @@
+import { PokemonProfileProps } from "../_pokemonApi/pokemonDataApi";
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api"; // Default to '/api' if env variable is not set
 
 // Save user data (POST)
@@ -36,7 +38,7 @@ export async function fetchUserData(userId: string) {
       }
     );
 
-    const result: Record<string, string>[] | null = await response.json();
+    const result: PokemonProfileProps | null = await response.json();
     if (response.ok) {
       return result; // Return the data for further use
     } else {

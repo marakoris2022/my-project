@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const userData = await getUserData(userId);
-    if (userData.length === 0) {
+    if (!userData) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
     return NextResponse.json(userData, { status: 200 });

@@ -78,7 +78,7 @@ export async function getUserData(userId: string) {
       } as UserData; // явное приведение к типу UserData
     });
 
-    return data.filter((doc) => doc.userId === userId);
+    return data.find((doc) => doc.userId === userId);
   } catch (error) {
     console.error("Error getting documents: ", error);
     throw error;
