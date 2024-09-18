@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import { useAuth } from "@/app/_customHooks/useAuth";
 
 export default function ProfilePage() {
@@ -11,8 +11,12 @@ export default function ProfilePage() {
   }
 
   return (
-    <Box>
-      <Typography>ProfilePage</Typography>
+    <Box sx={{ backgroundColor: "lightgray", height: "100vh" }}>
+      <Container>
+        <Box>
+          <Typography>ProfilePage</Typography>
+        </Box>
+      </Container>
     </Box>
   );
 }

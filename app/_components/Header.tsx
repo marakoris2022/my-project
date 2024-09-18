@@ -35,7 +35,9 @@ export default function Header() {
   }
 
   return (
-    <Box sx={{ backgroundColor: "lightblue" }}>
+    <Box
+      sx={{ backgroundColor: "lightblue", borderBottom: "2px solid darkgray" }}
+    >
       <Container
         sx={{ display: "flex", justifyContent: "flex-end", padding: "10px" }}
       >
