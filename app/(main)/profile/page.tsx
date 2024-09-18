@@ -1,27 +1,55 @@
-import { COOKIES_TOKEN_KEY_NAME } from "@/app/_constants/constants";
-import { getUserFromToken } from "@/app/_firebase/getUserFromToken";
-import { Box, Typography } from "@mui/material";
-import { cookies } from "next/headers";
+"use client";
 
-export default async function ProfilePage() {
-  const token = cookies().get(COOKIES_TOKEN_KEY_NAME);
-  let user = null;
+import { Box, Container, Typography } from "@mui/material";
+import { useAuth } from "@/app/_customHooks/useAuth";
+import { useEffect, useState } from "react";
+import { fetchUserData } from "@/app/_firebase/clientFirestireApi";
 
-  if (token) {
-    user = await getUserFromToken(token.value);
+export default function ProfilePage() {
+  const { user, loading } = useAuth();
+  const [fetchedData, setFetchedData] = useState<
+    Record<string, string> | null | undefined
+  >(undefined);
+
+  useEffect(() => {
+    if (user) {
+      (async () => {
+        const res = await fetchUserData(user.uid);
+        setFetchedData(res ? res[0] : null);
+      })();
+    }
+  }, [user]);
+
+  if (loading || fetchedData === undefined) {
+    return <Typography>Loading...</Typography>; // Показываем индикатор загрузки
   }
 
-  if (!user)
+  if (!fetchedData)
     return (
-      <Box>
-        <Typography>No User Found</Typography>
-        <Typography fontWeight={600}>Something wrong.</Typography>
+      <Box sx={{ backgroundColor: "lightgray", height: "100vh" }}>
+        <Container>
+          <Box>
+            <Typography>Something wrong.</Typography>
+            <Typography>Cant get user Data.</Typography>
+          </Box>
+        </Container>
       </Box>
     );
 
   return (
-    <Box>
-      <Typography>ProfilePage {user.displayName}</Typography>
+    <Box sx={{ backgroundColor: "lightgray", height: "100vh" }}>
+      <Container>
+        <Box>
+          <Typography>ProfilePage</Typography>
+        </Box>
+        <Box>
+          <Typography>
+            {Boolean(fetchedData["chosenPokemon"])
+              ? "Pokemon is set!"
+              : "You need to choose Pokemon."}
+          </Typography>
+        </Box>
+      </Container>
     </Box>
   );
 }

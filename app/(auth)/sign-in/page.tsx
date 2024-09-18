@@ -3,61 +3,58 @@
 import { SignInDataProps } from "@/app/_interface/interface";
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { FieldValues, useForm } from "react-hook-form";
-import { validateSignInData } from "./validateSignInData";
-import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/app/_firebase/firebaseConfig";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useState } from "react";
+import { FirebaseAuthError } from "firebase-admin/auth";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/_customHooks/useAuth";
 
 export default function SignIn() {
-  const { register, handleSubmit, reset } = useForm();
-  const [errorValid, setErrorValid] = useState<string[]>([]);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
+
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const { user, loading } = useAuth();
+
   const router = useRouter();
 
+  if (loading) {
+    return <Typography>Loading...</Typography>; // Показываем индикатор загрузки
+  }
+
+  if (!loading && user) {
+    router.push("/");
+  }
+
   const onSubmit = async (data: SignInDataProps | FieldValues) => {
-    setErrorValid([]);
-    const isErrorArray = validateSignInData(data as SignInDataProps);
-    if (isErrorArray.length > 0) {
-      setErrorValid(isErrorArray);
-      return;
-    }
-
+    setFirebaseError(null); // Сброс ошибки перед новой попыткой
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-
-      const token = await userCredential.user.getIdToken(true);
-
-      const response = await fetch("api/sign-in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token: token,
-        }),
-      });
-
-      // Проверка на успешный статус
-      if (!response.ok) {
-        const errorResponse = await response.json(); // Получаем сообщение об ошибке
-        throw new Error(errorResponse.error || "Something went wrong"); // Выбрасываем ошибку с сообщением
-      }
-
+      await signInWithEmailAndPassword(auth, data.email, data.password);
       router.push("/profile");
     } catch (error) {
-      console.error("Error occurred:", (error as Error).message);
-      setErrorValid([(error as Error).message]); // Устанавливаем сообщение об ошибке
+      // Обработка ошибок Firebase
+      switch ((error as FirebaseAuthError).code) {
+        case "auth/user-not-found":
+          setFirebaseError("User not found. Please check your email.");
+          break;
+        case "auth/wrong-password":
+          setFirebaseError("Incorrect password. Please try again.");
+          break;
+        default:
+          setFirebaseError("Something went wrong. Please try again.");
+      }
     }
   };
 
   function handleReset() {
     reset();
-    setErrorValid([]);
+    setFirebaseError(null); // Сброс ошибки при сбросе формы
   }
 
   return (
@@ -68,16 +65,44 @@ export default function SignIn() {
 
       <Box component={"form"} onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mb: "15px" }}>
-          <TextField label="E-mail" variant="standard" {...register("email")} />
+          <TextField
+            label="E-mail"
+            variant="standard"
+            {...register("email", {
+              required: "E-mail is required",
+              pattern: {
+                value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/g,
+                message: "Invalid e-mail format",
+              },
+            })}
+            error={!!errors.email}
+            helperText={errors.email?.message?.toString() || ""}
+          />
         </Box>
         <Box sx={{ mb: "15px" }}>
           <TextField
             label="Password"
             variant="standard"
             type="password"
-            {...register("password")}
+            {...register("password", {
+              required: "Password is required",
+              minLength: {
+                value: 6,
+                message: "Password must be at least 6 characters long",
+              },
+            })}
+            error={!!errors.password}
+            helperText={errors.password?.message?.toString() || ""}
           />
         </Box>
+
+        {/* Отображение ошибок Firebase */}
+        {firebaseError && (
+          <Typography color="error" sx={{ mb: "15px" }}>
+            {firebaseError}
+          </Typography>
+        )}
+
         <Box sx={{ mb: "20px" }}>
           <Button sx={{ mr: "15px" }} variant="contained" type="submit">
             Submit
@@ -91,19 +116,6 @@ export default function SignIn() {
             Back to Menu
           </Button>
         </Link>
-        <Box>
-          {Boolean(errorValid.length) && (
-            <Box>
-              <Typography
-                component={"p"}
-                sx={{ color: "red" }}
-                fontSize={"14px"}
-              >
-                {errorValid}
-              </Typography>
-            </Box>
-          )}
-        </Box>
       </Box>
     </Box>
   );

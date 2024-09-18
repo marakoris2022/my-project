@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { Container } from "@mui/material";
-import Header from "../_components/Header";
 
 export const metadata: Metadata = {
   title: "My own Project",
@@ -12,10 +10,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <Container>
-      <Header />
-      {children}
-    </Container>
-  );
+  return <>{children}</>;
 }
