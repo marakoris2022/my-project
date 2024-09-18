@@ -31,20 +31,9 @@ export function getPokemonByName(name: string) {
   return pokemonList.find((item) => item.name === name);
 }
 
-export function getPokemonArrayByPropsValue(
-  propName: string,
-  minValue: number = 0,
-  maxValue: number = Infinity
-) {
-  return pokemonList.filter((item) => {
-    const itemKeys = Object.keys(item);
-    for (let i = 0; i < itemKeys.length; i++) {
-      if (itemKeys[i] === propName) {
-        if (item[propName] >= minValue && item[propName] <= maxValue) {
-          return true;
-        }
-      }
-    }
-    return false;
-  });
+export function getPokemonListByExp(by: "inc" | "dec") {
+  if (by === "inc") {
+    return pokemonList.sort((a, b) => a.base_experience - b.base_experience);
+  }
+  return pokemonList.sort((a, b) => b.base_experience - a.base_experience);
 }

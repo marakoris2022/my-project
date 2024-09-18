@@ -16,7 +16,6 @@ export default function ProfilePage() {
       (async () => {
         const res = await fetchUserData(user.uid);
         setFetchedData(res ? res[0] : null);
-        console.log(user.uid);
       })();
     }
   }, [user]);
