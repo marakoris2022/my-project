@@ -1,13 +1,12 @@
 "use client";
 
-import { Avatar, Box, CardMedia, Container, Typography } from "@mui/material";
+import { Avatar, Box, Container, Typography } from "@mui/material";
 import { useAuth } from "@/app/_customHooks/useAuth";
 import { useEffect, useState } from "react";
 import { fetchUserData } from "@/app/_firebase/clientFirestireApi";
 import ItemCarousel from "@/app/_components/ItemCarousel";
 import { getPokemonListByExp } from "@/app/_pokemonApi/pokemonDataApi";
 import PokemonCard from "@/app/_components/PokemonCard";
-import { Image } from "@mui/icons-material";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();

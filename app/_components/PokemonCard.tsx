@@ -9,6 +9,8 @@ import {
   Button,
 } from "@mui/material";
 
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+
 type SpritesProps = {
   front_default: string;
 };
@@ -41,7 +43,6 @@ function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
         flexDirection: "row",
         width: "100%",
         maxWidth: 600,
-        // height: 300,
         boxShadow: 4,
         borderRadius: 4,
         backgroundColor: "#f1f8ff", // Светлый фантастический фон
@@ -82,9 +83,6 @@ function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
 
         {/* Основная информация о покемоне */}
         <Box>
-          <Typography variant="body1" sx={{ color: "#546e7a" }}>
-            Base Experience: {pokemonData.base_experience}
-          </Typography>
           <Typography variant="body1" sx={{ color: "#546e7a" }}>
             Height: {pokemonData.height} dm
           </Typography>
@@ -154,6 +152,7 @@ function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
 
         {/* Кнопка */}
         <Button
+          endIcon={<FavoriteBorderIcon />}
           variant="contained"
           sx={{
             backgroundColor: "#1976d2",
@@ -164,7 +163,7 @@ function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
             marginTop: 1,
           }}
         >
-          Learn More
+          Choose!
         </Button>
       </CardContent>
     </Card>
