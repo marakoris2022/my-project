@@ -25,6 +25,17 @@ export type PokemonProps = {
   weight: number;
 };
 
+export type PokemonProfileProps = PokemonProps & {
+  chosenPokemon: string;
+  currentExp: number;
+  currentHP: number;
+  id: string;
+  level: number;
+  maxHP: number;
+  userId: string;
+  playerName: string;
+};
+
 const pokemonList = pokemonListFromJSON as PokemonProps[];
 
 export function getPokemonByName(name: string) {

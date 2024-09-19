@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, Container, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Container } from "@mui/material";
 import Link from "next/link";
 import { useAuth } from "../_customHooks/useAuth";
 import { useRouter } from "next/navigation";
@@ -28,8 +28,19 @@ export default function Header() {
 
   if (loading) {
     return (
-      <Box>
-        <Typography>Loading...</Typography>
+      <Box
+        sx={{
+          backgroundColor: "lightblue",
+          borderBottom: "2px solid darkgray",
+        }}
+      >
+        <Container
+          sx={{ display: "flex", justifyContent: "flex-end", padding: "10px" }}
+        >
+          <Box sx={{ display: "flex", flexDirection: "row", gap: "15px" }}>
+            <CircularProgress size={20} />
+          </Box>
+        </Container>
       </Box>
     );
   }

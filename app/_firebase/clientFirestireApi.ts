@@ -1,3 +1,5 @@
+import { PokemonProfileProps } from "../_pokemonApi/pokemonDataApi";
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api"; // Default to '/api' if env variable is not set
 
 // Save user data (POST)
@@ -36,7 +38,7 @@ export async function fetchUserData(userId: string) {
       }
     );
 
-    const result: Record<string, string>[] | null = await response.json();
+    const result: PokemonProfileProps | null = await response.json();
     if (response.ok) {
       return result; // Return the data for further use
     } else {
@@ -49,27 +51,25 @@ export async function fetchUserData(userId: string) {
   }
 }
 
-// // Update user data (PATCH)
-// export async function updateUserData(
-//   docId: string,
-//   newData: Record<string, string>
-// ) {
-//   try {
-//     const response = await fetch("/api/user", {
-//       method: "PATCH",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ docId, newData }),
-//     });
+// Delete user data (DELETE)
+export async function deleteUserFromDB(userId: string) {
+  try {
+    const response = await fetch(
+      `${apiUrl}/user?userId=${encodeURIComponent(userId)}`,
+      {
+        method: "DELETE",
+      }
+    );
 
-//     const result = await response.json();
-//     if (response.ok) {
-//       return result; // Return the result for further use
-//     } else {
-//       console.error("Error updating user data:", result);
-//     }
-//   } catch (error) {
-//     console.error("Request failed:", error);
-//   }
-// }
+    const result = await response.json();
+    if (response.ok) {
+      return result; // Return the result if further use is needed
+    } else {
+      console.error("Error deleting user data:", result);
+      return null;
+    }
+  } catch (error) {
+    console.error("Request failed:", error);
+    return null;
+  }
+}

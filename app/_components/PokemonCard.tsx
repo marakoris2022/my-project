@@ -10,32 +10,40 @@ import {
 } from "@mui/material";
 
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import { useAuth } from "../_customHooks/useAuth";
+import { User } from "firebase/auth";
+import { saveUserData } from "../_firebase/clientFirestireApi";
+import { useRouter } from "next/navigation";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { PokemonProps } from "../_pokemonApi/pokemonDataApi";
 
-type SpritesProps = {
-  front_default: string;
-};
+async function addChosenPokemonToUserData(
+  user: User,
+  pokemonData: PokemonProps,
+  router: AppRouterInstance
+) {
+  try {
+    await saveUserData(user.uid, {
+      level: 0,
+      currentExp: 0,
+      playerName: user.displayName,
+      chosenPokemon: pokemonData.name,
+      currentHP: pokemonData.stats.hp,
+      maxHP: pokemonData.stats.hp,
+      ...pokemonData,
+    });
 
-type StatsProps = {
-  attack: number;
-  defense: number;
-  hp: number;
-  "special-attack": number;
-  "special-defense": number;
-  speed: number;
-};
-
-export type PokemonProps = {
-  base_experience: number;
-  height: number;
-  name: string;
-  order: number;
-  sprites: SpritesProps;
-  stats: StatsProps;
-  types: string;
-  weight: number;
-};
+  } catch (error) {
+    console.error((error as Error).message);
+  } finally {
+    router.refresh();
+  }
+}
 
 function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
+  const { user } = useAuth();
+  const router = useRouter();
+
   return (
     <Card
       sx={{
@@ -161,6 +169,10 @@ function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
             fontWeight: "bold",
             ":hover": { backgroundColor: "#1995d2" },
             marginTop: 1,
+          }}
+          onClick={async () => {
+            await addChosenPokemonToUserData(user!, pokemonData, router);
+            router.push('/profile');
           }}
         >
           Choose!
