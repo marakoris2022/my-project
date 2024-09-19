@@ -62,3 +62,10 @@ export function getPokemonListByExp(by: "inc" | "dec") {
   }
   return pokemonList.sort((a, b) => b.base_experience - a.base_experience);
 }
+
+export function getPokemonListByExpRange(minExp: number, maxExp: number) {
+  return pokemonList.filter(
+    (pokemon) =>
+      pokemon.base_experience >= minExp && pokemon.base_experience <= maxExp
+  );
+}

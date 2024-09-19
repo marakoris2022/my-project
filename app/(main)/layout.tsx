@@ -12,7 +12,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <Box sx={{ backgroundColor: "lightgray", height: "92vh" }}>
+    <Box
+      sx={{
+        backgroundColor: "lightgray",
+        height: "fit-content",
+        minHeight: "100vh",
+      }}
+    >
       <Container>{children}</Container>
     </Box>
   );
