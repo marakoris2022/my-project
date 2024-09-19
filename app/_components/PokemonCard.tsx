@@ -169,7 +169,10 @@ function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
             ":hover": { backgroundColor: "#1995d2" },
             marginTop: 1,
           }}
-          onClick={() => addChosenPokemonToUserData(user!, pokemonData, router)}
+          onClick={async () => {
+            await addChosenPokemonToUserData(user!, pokemonData, router);
+            router.refresh();
+          }}
         >
           Choose!
         </Button>

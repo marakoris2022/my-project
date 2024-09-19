@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, Box, Container, Typography } from "@mui/material";
+import { Avatar, Box, Typography } from "@mui/material";
 import { useAuth } from "@/app/_customHooks/useAuth";
 import { useEffect, useState } from "react";
 import { fetchUserData } from "@/app/_firebase/clientFirestireApi";
@@ -24,8 +24,6 @@ export default function ProfilePage() {
     if (user) {
       (async () => {
         const res = await fetchUserData(user.uid);
-        console.log("res", res);
-
         setFetchedData(res ? res : null);
       })();
     }

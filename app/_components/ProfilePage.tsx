@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Typography,
@@ -10,9 +10,25 @@ import {
   LinearProgress,
 } from "@mui/material";
 import { PokemonProfileProps } from "../_pokemonApi/pokemonDataApi";
+import {
+  deleteUserFromDB,
+  saveUserData,
+} from "../_firebase/clientFirestireApi";
+import { useRouter } from "next/navigation";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import ResponsiveDialog from "./ResponsiveDialog";
 
 function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
+  const [isDialog, setIsDialog] = useState(false);
   const hpPercentage = (pokemon.currentHP / pokemon.maxHP) * 100;
+  const router = useRouter();
+
+  async function handleDelete() {
+    await deleteUserFromDB(pokemon.userId);
+    await saveUserData(pokemon.userId, {});
+
+    router.refresh();
+  }
 
   return (
     <Box
@@ -23,6 +39,17 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
         paddingTop: "20px",
       }}
     >
+      {/* DIALOG */}
+      <ResponsiveDialog
+        isOpen={isDialog}
+        setIsOpen={setIsDialog}
+        title={"Remove Current Pokémon"}
+        content={
+          "Are you sure you want to remove the current Pokémon? You will lose all progress after confirming."
+        }
+        handleSubmit={handleDelete}
+      />
+
       {/* Карточка персонажа */}
       <Card
         sx={{
@@ -36,11 +63,23 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
       >
         <CardContent>
           {/* Заголовок и аватар */}
-          <Box sx={{ display: "flex", alignItems: "center", marginBottom: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 3,
+            }}
+          >
             <Avatar
               src={pokemon.sprites.front_default}
               alt={pokemon.name}
-              sx={{ width: 96, height: 96, marginRight: 2 }}
+              sx={{
+                width: 120,
+                height: 120,
+                border: "1px solid #3f51b5",
+                background: "azure",
+              }}
             />
             <Box>
               <Typography variant="h4" fontWeight="bold" color="#3f51b5">
@@ -50,6 +89,15 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
                 {`Level: ${pokemon.level} | Type: ${pokemon.types}`}
               </Typography>
             </Box>
+            <Button
+              color="error"
+              variant="outlined"
+              onClick={async () => {
+                setIsDialog(true);
+              }}
+            >
+              <DeleteForeverIcon />
+            </Button>
           </Box>
 
           {/* HP Bar */}

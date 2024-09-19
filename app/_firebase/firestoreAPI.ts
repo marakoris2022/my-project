@@ -8,6 +8,7 @@ import {
   doc,
   query,
   where,
+  deleteDoc,
 } from "firebase/firestore";
 
 // Универсальная функция для добавления или обновления документа
@@ -111,6 +112,33 @@ export async function updateUserData(
     await updateDoc(userDocRef, newData);
   } catch (error) {
     console.error("Error updating document: ", error);
+    throw error;
+  }
+}
+
+// Function to delete user data based on userId
+export async function deleteUserData(userId: string) {
+  try {
+    // Reference the users collection
+    const usersCollection = collection(db, "users");
+    // Query to find the document with the given userId
+    const q = query(usersCollection, where("userId", "==", userId));
+
+    // Get the query snapshot
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return; // If no documents found, exit the function
+    }
+
+    // Assume userId is unique, so we take the first document found
+    const userDoc = querySnapshot.docs[0];
+    const userDocRef = doc(db, "users", userDoc.id);
+
+    // Delete the document
+    await deleteDoc(userDocRef);
+  } catch (error) {
+    console.error("Error deleting user data: ", error);
     throw error;
   }
 }
