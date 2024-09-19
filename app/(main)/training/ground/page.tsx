@@ -3,7 +3,7 @@
 import { Box, Button, CardMedia, Typography } from "@mui/material";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
