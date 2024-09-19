@@ -16,6 +16,15 @@ type StatsProps = {
 
 type TrainingProps = {
   isTraining: boolean;
+  trainingStarted: number;
+  trainingEnd: number;
+  opponents: {
+    a: PokemonProps;
+    b: PokemonProps;
+    c: PokemonProps;
+    d: PokemonProps;
+    e: PokemonProps;
+  };
 };
 
 export type PokemonProps = {

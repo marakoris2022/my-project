@@ -8,6 +8,10 @@ import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import { saveUserData } from "@/app/_firebase/clientFirestireApi";
+import { useRouter } from "next/navigation";
+import { getRandomInRange } from "@/app/_utils/utils";
 
 const defaultSettings = {
   lastButton: "down",
@@ -15,7 +19,29 @@ const defaultSettings = {
   windowHeight: 500,
   heroTop: 10,
   heroLeft: 10,
-  step: 10, // Шаг перемещения
+  step: 10,
+  opponent: {
+    a: {
+      top: getRandomInRange(50, 400),
+      left: getRandomInRange(50, 700),
+    },
+    b: {
+      top: getRandomInRange(50, 400),
+      left: getRandomInRange(50, 700),
+    },
+    c: {
+      top: getRandomInRange(50, 400),
+      left: getRandomInRange(50, 700),
+    },
+    d: {
+      top: getRandomInRange(50, 400),
+      left: getRandomInRange(50, 700),
+    },
+    e: {
+      top: getRandomInRange(50, 400),
+      left: getRandomInRange(50, 700),
+    },
+  },
 };
 
 export function PokemonMapCard({
@@ -73,6 +99,49 @@ export function PokemonMapCard({
 export default function ProfilePage() {
   const { loading, fetchedData } = usePokemonRedirect();
   const [settings, setSettings] = useState(defaultSettings);
+  const router = useRouter();
+
+  async function handleLeaveTraining() {
+    await saveUserData(fetchedData!.userId, {
+      ...fetchedData,
+      training: {
+        isTraining: false,
+      },
+    });
+    router.push("/training");
+  }
+
+  // Функция для расчета расстояния между двумя точками
+  function calculateDistance(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ): number {
+    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+  }
+
+  useEffect(() => {
+    logDistances(settings);
+  }, [settings.heroTop, settings.heroLeft]);
+
+  function logDistances(settings: typeof defaultSettings) {
+    const { heroTop, heroLeft, opponent } = settings;
+    (Object.keys(opponent) as Array<"a" | "b" | "c" | "d" | "e">).forEach(
+      (key) => {
+        const distance = calculateDistance(
+          heroLeft,
+          heroTop,
+          opponent[key].left,
+          opponent[key].top
+        );
+
+        if (distance < 20) {
+          console.log(`Fight! ${fetchedData?.training.opponents[key]}`);
+        }
+      }
+    );
+  }
 
   // Функция для движения влево
   const handleMoveLeft = () => {
@@ -192,6 +261,25 @@ export default function ProfilePage() {
           top={settings.heroTop}
           left={settings.heroLeft}
         />
+        {(
+          Object.keys(fetchedData.training.opponents) as Array<
+            "a" | "b" | "c" | "d" | "e"
+          >
+        ).map((key, index) => {
+          return (
+            <PokemonMapCard
+              key={index}
+              lastButton={"down"}
+              imageFront={
+                fetchedData.training.opponents[key].sprites.front_default
+              }
+              imageBack={"empty"}
+              name={fetchedData.training.opponents[key].name}
+              top={settings.opponent[key].top}
+              left={settings.opponent[key].left}
+            />
+          );
+        })}
       </Box>
 
       {/* Кнопки для перемещения */}
@@ -225,9 +313,15 @@ export default function ProfilePage() {
         >
           <ArrowRightIcon />
         </Button>
-        <Typography sx={{ display: "inline-block" }}>
-          Move speed: {fetchedData.stats.speed}
-        </Typography>
+
+        <Button
+          variant="contained"
+          onClick={handleLeaveTraining}
+          endIcon={<ExitToAppIcon />}
+          color="warning"
+        >
+          Leave Training
+        </Button>
       </Box>
     </Box>
   );
