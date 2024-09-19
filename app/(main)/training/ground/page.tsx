@@ -3,7 +3,7 @@
 import { Box, Button, CardMedia, Typography } from "@mui/material";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { getRandomInRange } from "@/app/_utils/utils";
 
 const defaultSettings = {
+  background: `url(/training-ground-${getRandomInRange(1, 4)}.webp)`,
   lastButton: "down",
   windowWidth: 800,
   windowHeight: 500,
@@ -44,7 +45,7 @@ const defaultSettings = {
   },
 };
 
-export function PokemonMapCard({
+function PokemonMapCard({
   lastButton,
   imageFront,
   imageBack,
@@ -68,6 +69,8 @@ export function PokemonMapCard({
         borderRadius: "7px",
         padding: "5px",
         overflow: "hidden",
+        background: "#f0ffff3d",
+        border: "solid 1px gray",
       }}
     >
       <Typography
@@ -122,26 +125,31 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
-    logDistances(settings);
-  }, [settings.heroTop, settings.heroLeft]);
+    function logDistances(settings: typeof defaultSettings) {
+      const { heroTop, heroLeft, opponent } = settings;
+      (Object.keys(opponent) as Array<"a" | "b" | "c" | "d" | "e">).forEach(
+        (key) => {
+          const distance = calculateDistance(
+            heroLeft,
+            heroTop,
+            opponent[key].left,
+            opponent[key].top
+          );
 
-  function logDistances(settings: typeof defaultSettings) {
-    const { heroTop, heroLeft, opponent } = settings;
-    (Object.keys(opponent) as Array<"a" | "b" | "c" | "d" | "e">).forEach(
-      (key) => {
-        const distance = calculateDistance(
-          heroLeft,
-          heroTop,
-          opponent[key].left,
-          opponent[key].top
-        );
-
-        if (distance < 20) {
-          console.log(`Fight! ${fetchedData?.training.opponents[key]}`);
+          if (distance < 20) {
+            console.log(`Fight! ${fetchedData?.training.opponents[key]}`);
+          }
         }
-      }
-    );
-  }
+      );
+    }
+
+    logDistances(settings);
+  }, [
+    settings.heroTop,
+    settings.heroLeft,
+    settings,
+    fetchedData?.training.opponents,
+  ]);
 
   // Функция для движения влево
   const handleMoveLeft = () => {
@@ -179,33 +187,33 @@ export default function ProfilePage() {
     }));
   };
 
-  // Обработка клавиатуры
-  const handleKeyDown = (e: KeyboardEvent) => {
-    switch (e.key) {
-      case "ArrowLeft":
-        handleMoveLeft();
-        break;
-      case "ArrowRight":
-        handleMoveRight();
-        break;
-      case "ArrowUp":
-        handleMoveUp();
-        break;
-      case "ArrowDown":
-        handleMoveDown();
-        break;
-      default:
-        break;
-    }
-  };
+  // // Обработка клавиатуры
+  // const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  //   switch (e.key) {
+  //     case "ArrowLeft":
+  //       handleMoveLeft();
+  //       break;
+  //     case "ArrowRight":
+  //       handleMoveRight();
+  //       break;
+  //     case "ArrowUp":
+  //       handleMoveUp();
+  //       break;
+  //     case "ArrowDown":
+  //       handleMoveDown();
+  //       break;
+  //     default:
+  //       break;
+  //   }
+  // }, []);
 
-  // Добавляем и удаляем обработчики событий для клавиатуры
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
+  // // Добавляем и удаляем обработчики событий для клавиатуры
+  // useEffect(() => {
+  //   window.addEventListener("keydown", handleKeyDown);
+  //   return () => {
+  //     window.removeEventListener("keydown", handleKeyDown);
+  //   };
+  // }, [handleKeyDown]);
 
   useEffect(() => {
     if (fetchedData) {
@@ -247,20 +255,16 @@ export default function ProfilePage() {
           margin: "0 auto",
           width: `${settings.windowWidth}px`,
           height: `${settings.windowHeight}px`,
-          background: "azure",
+
+          backgroundImage: settings.background, // Добавляем фоновое изображение
+          backgroundSize: "cover", // Заставляем изображение заполнять всё пространство
+          backgroundPosition: "center", // Центрируем изображение
+          backgroundRepeat: "no-repeat", // Избегаем повторения изображения
           border: "2px solid black",
           borderRadius: "10px",
           position: "relative",
         }}
       >
-        <PokemonMapCard
-          lastButton={settings.lastButton}
-          imageFront={fetchedData.sprites.front_default}
-          imageBack={fetchedData.sprites.back_default}
-          name={fetchedData.chosenPokemon}
-          top={settings.heroTop}
-          left={settings.heroLeft}
-        />
         {(
           Object.keys(fetchedData.training.opponents) as Array<
             "a" | "b" | "c" | "d" | "e"
@@ -280,6 +284,14 @@ export default function ProfilePage() {
             />
           );
         })}
+        <PokemonMapCard
+          lastButton={settings.lastButton}
+          imageFront={fetchedData.sprites.front_default}
+          imageBack={fetchedData.sprites.back_default}
+          name={fetchedData.chosenPokemon}
+          top={settings.heroTop}
+          left={settings.heroLeft}
+        />
       </Box>
 
       {/* Кнопки для перемещения */}

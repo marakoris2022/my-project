@@ -24,7 +24,7 @@ export const usePokemonRedirect = () => {
         setLoading(false);
       })();
     }
-  }, [user]);
+  }, [pathname, user]);
 
   useEffect(() => {
     if (
