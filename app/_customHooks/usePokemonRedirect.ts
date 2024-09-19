@@ -24,7 +24,7 @@ export const usePokemonRedirect = () => {
         setLoading(false);
       })();
     }
-  }, [user]);
+  }, [pathname, user]);
 
   useEffect(() => {
     if (
@@ -41,6 +41,22 @@ export const usePokemonRedirect = () => {
       pathname === "/profile/create"
     ) {
       router.push("/profile");
+    }
+
+    if (
+      fetchedData &&
+      Boolean(fetchedData["training"].isTraining) === true &&
+      pathname === "/training"
+    ) {
+      router.push("/training/ground");
+    }
+
+    if (
+      fetchedData &&
+      Boolean(fetchedData["training"].isTraining) === false &&
+      pathname === "/training/ground"
+    ) {
+      router.push("/training");
     }
   }, [fetchedData, pathname, router]);
 

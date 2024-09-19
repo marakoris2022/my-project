@@ -25,7 +25,11 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
 
   async function handleDelete() {
     await deleteUserFromDB(pokemon.userId);
-    await saveUserData(pokemon.userId, {});
+    await saveUserData(pokemon.userId, {
+      training: {
+        isTraining: false,
+      },
+    });
     router.push("/profile/create");
   }
 
@@ -197,6 +201,9 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
               variant="contained"
               color="primary"
               sx={{ borderRadius: 4 }}
+              onClick={() => {
+                router.push("/training");
+              }}
             >
               Train
             </Button>
