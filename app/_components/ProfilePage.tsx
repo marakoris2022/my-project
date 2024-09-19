@@ -26,8 +26,7 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
   async function handleDelete() {
     await deleteUserFromDB(pokemon.userId);
     await saveUserData(pokemon.userId, {});
-
-    router.refresh();
+    router.push("/profile/create");
   }
 
   return (

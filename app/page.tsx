@@ -2,10 +2,10 @@
 import { Box, Button, Container, Typography } from "@mui/material";
 import Link from "next/link";
 import StaticBackdrop from "./_components/StaticBackdrop"; // Компонент загрузки
-import { useAuth } from "./_customHooks/useAuth";
+import { usePokemonRedirect } from "./_customHooks/usePokemonRedirect";
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const { user, loading } = usePokemonRedirect();
 
   // Если загрузка данных пользователя еще идет, показываем компонент загрузки
   if (loading) {
