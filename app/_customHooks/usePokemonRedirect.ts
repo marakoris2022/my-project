@@ -42,6 +42,22 @@ export const usePokemonRedirect = () => {
     ) {
       router.push("/profile");
     }
+
+    if (
+      fetchedData &&
+      Boolean(fetchedData["training"].isTraining) === true &&
+      pathname === "/training"
+    ) {
+      router.push("/training/ground");
+    }
+
+    if (
+      fetchedData &&
+      Boolean(fetchedData["training"].isTraining) === false &&
+      pathname === "/training/ground"
+    ) {
+      router.push("/training");
+    }
   }, [fetchedData, pathname, router]);
 
   return { loading, user, fetchedData };

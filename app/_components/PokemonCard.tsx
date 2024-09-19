@@ -30,9 +30,11 @@ async function addChosenPokemonToUserData(
       chosenPokemon: pokemonData.name,
       currentHP: pokemonData.stats.hp,
       maxHP: pokemonData.stats.hp,
+      training: {
+        isTraining: false,
+      },
       ...pokemonData,
     });
-
   } catch (error) {
     console.error((error as Error).message);
   } finally {
@@ -172,7 +174,7 @@ function PokemonCard({ pokemonData }: { pokemonData: PokemonProps }) {
           }}
           onClick={async () => {
             await addChosenPokemonToUserData(user!, pokemonData, router);
-            router.push('/profile');
+            router.push("/profile");
           }}
         >
           Choose!

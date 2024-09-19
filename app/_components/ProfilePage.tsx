@@ -197,6 +197,9 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
               variant="contained"
               color="primary"
               sx={{ borderRadius: 4 }}
+              onClick={() => {
+                router.push("/training");
+              }}
             >
               Train
             </Button>

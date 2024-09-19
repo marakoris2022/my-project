@@ -14,6 +14,10 @@ type StatsProps = {
   speed: number;
 };
 
+type TrainingProps = {
+  isTraining: boolean;
+};
+
 export type PokemonProps = {
   base_experience: number;
   height: number;
@@ -34,6 +38,7 @@ export type PokemonProfileProps = PokemonProps & {
   maxHP: number;
   userId: string;
   playerName: string;
+  training: TrainingProps;
 };
 
 const pokemonList = pokemonListFromJSON as PokemonProps[];
