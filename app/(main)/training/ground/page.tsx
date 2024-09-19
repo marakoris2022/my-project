@@ -10,6 +10,7 @@ import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 
 const defaultSettings = {
+  lastButton: "down",
   windowWidth: 800,
   windowHeight: 500,
   heroTop: 10,
@@ -18,12 +19,16 @@ const defaultSettings = {
 };
 
 export function PokemonMapCard({
-  image,
+  lastButton,
+  imageFront,
+  imageBack,
   name,
   top,
   left,
 }: {
-  image: string;
+  lastButton: string;
+  imageFront: string;
+  imageBack: string;
   name: string;
   top: number;
   left: number;
@@ -50,7 +55,11 @@ export function PokemonMapCard({
       </Typography>
       <CardMedia
         component="img"
-        image={image}
+        image={
+          lastButton === "down" || lastButton === "left"
+            ? imageFront
+            : imageBack
+        }
         alt={name}
         sx={{
           width: "80px",
@@ -69,6 +78,7 @@ export default function ProfilePage() {
   const handleMoveLeft = () => {
     setSettings((prev) => ({
       ...prev,
+      lastButton: "left",
       heroLeft: Math.max(0, prev.heroLeft - prev.step),
     }));
   };
@@ -77,6 +87,7 @@ export default function ProfilePage() {
   const handleMoveRight = () => {
     setSettings((prev) => ({
       ...prev,
+      lastButton: "right",
       heroLeft: Math.min(prev.windowWidth - 80, prev.heroLeft + prev.step),
     }));
   };
@@ -85,6 +96,7 @@ export default function ProfilePage() {
   const handleMoveUp = () => {
     setSettings((prev) => ({
       ...prev,
+      lastButton: "up",
       heroTop: Math.max(0, prev.heroTop - prev.step),
     }));
   };
@@ -93,6 +105,7 @@ export default function ProfilePage() {
   const handleMoveDown = () => {
     setSettings((prev) => ({
       ...prev,
+      lastButton: "down",
       heroTop: Math.min(prev.windowHeight - 80, prev.heroTop + prev.step),
     }));
   };
@@ -124,6 +137,17 @@ export default function ProfilePage() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
+
+  useEffect(() => {
+    if (fetchedData) {
+      setSettings((prev) => {
+        return {
+          ...prev,
+          step: Math.floor(fetchedData.stats.speed / 10),
+        };
+      });
+    }
+  }, [fetchedData]);
 
   if (loading || fetchedData === undefined) {
     return <StaticBackdrop />;
@@ -161,7 +185,9 @@ export default function ProfilePage() {
         }}
       >
         <PokemonMapCard
-          image={fetchedData.sprites.front_default}
+          lastButton={settings.lastButton}
+          imageFront={fetchedData.sprites.front_default}
+          imageBack={fetchedData.sprites.back_default}
           name={fetchedData.chosenPokemon}
           top={settings.heroTop}
           left={settings.heroLeft}
@@ -191,9 +217,17 @@ export default function ProfilePage() {
         >
           <ArrowDropDownIcon />
         </Button>
-        <Button variant="contained" onClick={handleMoveRight}>
+
+        <Button
+          sx={{ marginRight: "10px" }}
+          variant="contained"
+          onClick={handleMoveRight}
+        >
           <ArrowRightIcon />
         </Button>
+        <Typography sx={{ display: "inline-block" }}>
+          Move speed: {fetchedData.stats.speed}
+        </Typography>
       </Box>
     </Box>
   );
