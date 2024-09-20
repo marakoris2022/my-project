@@ -1,19 +1,5 @@
 import pokemonListFromJSON from "../../pokemonData.json";
 
-type SpritesProps = {
-  back_default: string;
-  front_default: string;
-};
-
-type StatsProps = {
-  attack: number;
-  defense: number;
-  hp: number;
-  "special-attack": number;
-  "special-defense": number;
-  speed: number;
-};
-
 type TrainingProps = {
   isTraining: boolean;
   trainingStarted: number;
@@ -29,6 +15,20 @@ type TrainingProps = {
 
 type FightProps = {
   isFight: boolean;
+};
+
+type SpritesProps = {
+  back_default: string;
+  front_default: string;
+};
+
+type StatsProps = {
+  attack: number;
+  defense: number;
+  hp: number;
+  "special-attack": number;
+  "special-defense": number;
+  speed: number;
 };
 
 export type PokemonProps = {

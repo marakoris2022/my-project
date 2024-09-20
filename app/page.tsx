@@ -61,6 +61,17 @@ export default function Home() {
                   </Button>
                 </Link>
               </Box>
+              <Box sx={{ mb: "15px" }}>
+                <Link href={"/encyclopedia/1"}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    sx={{ background: "azure" }}
+                  >
+                    Encyclopedia
+                  </Button>
+                </Link>
+              </Box>
             </>
           ) : (
             <>
