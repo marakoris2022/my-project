@@ -1,7 +1,6 @@
 "use client";
 
 import { Box, Typography } from "@mui/material";
-import PokemonProfilePage from "@/app/_components/ProfilePage";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
 
@@ -12,7 +11,7 @@ export default function ProfilePage() {
     return <StaticBackdrop />;
   }
 
-  if (!fetchedData)
+  if (!fetchedData?.chosenPokemon || !fetchedData.fight.isFight)
     return (
       <Box>
         <Typography>Something went wrong.</Typography>
@@ -20,11 +19,5 @@ export default function ProfilePage() {
       </Box>
     );
 
-  return (
-    <Box>
-      {Boolean(fetchedData["pokemonActive"]) && (
-        <PokemonProfilePage pokemon={fetchedData} />
-      )}
-    </Box>
-  );
+  return <Box>Fight!</Box>;
 }

@@ -11,14 +11,14 @@ import {
 } from "@mui/material";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
-import { saveUserData } from "@/app/_firebase/clientFirestireApi";
+import { postRequestToServer } from "@/app/_firebase/clientFirestireApi";
 import { useRouter } from "next/navigation";
 import {
   getPokemonListByExpRange,
   PokemonProps,
 } from "@/app/_pokemonApi/pokemonDataApi";
-import { getRandomInRange } from "@/app/_utils/utils";
 import { useEffect, useState } from "react";
+import { POKEMON_TRAINING_GROUND_RANGE } from "@/app/_constants/constants";
 
 export default function ProfilePage() {
   const { loading, fetchedData } = usePokemonRedirect();
@@ -29,8 +29,8 @@ export default function ProfilePage() {
     if (fetchedData) {
       setPokemonDataList(
         getPokemonListByExpRange(
-          fetchedData!.currentExp - 10,
-          fetchedData!.currentExp + 40
+          fetchedData!.currentExp - POKEMON_TRAINING_GROUND_RANGE.MINUS,
+          fetchedData!.currentExp + POKEMON_TRAINING_GROUND_RANGE.PLUS
         )
       );
     }
@@ -41,24 +41,18 @@ export default function ProfilePage() {
   }
 
   async function handleTraining() {
-    await saveUserData(fetchedData!.userId, {
-      training: {
-        isTraining: true,
-        trainingStarted: Date.now(),
-        trainingEnd: Date.now() + 1000 * 60 * 5,
-        opponents: {
-          a: pokemonDataList[getRandomInRange(0, pokemonDataList.length - 1)],
-          b: pokemonDataList[getRandomInRange(0, pokemonDataList.length - 1)],
-          c: pokemonDataList[getRandomInRange(0, pokemonDataList.length - 1)],
-          d: pokemonDataList[getRandomInRange(0, pokemonDataList.length - 1)],
-          e: pokemonDataList[getRandomInRange(0, pokemonDataList.length - 1)],
-        },
-      },
-    });
-    router.push("/training/ground");
+    try {
+      await postRequestToServer(fetchedData!.userId, {
+        type: "start-training",
+      });
+
+      router.push("/training/ground");
+    } catch (error) {
+      console.error((error as Error).message);
+    }
   }
 
-  if (!fetchedData)
+  if (!fetchedData?.chosenPokemon)
     return (
       <Box>
         <Typography>Something went wrong.</Typography>
@@ -103,6 +97,9 @@ export default function ProfilePage() {
         </Button>
         <Typography variant="h6" gutterBottom>
           You can find these enemies based on your current experience.
+        </Typography>
+        <Typography variant="h6" gutterBottom>
+          Each time when you slay a Pokémon, you have chance to catch it!
         </Typography>
         <Grid container spacing={2} justifyContent="center">
           {pokemonDataList.map((item) => {

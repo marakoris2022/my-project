@@ -37,17 +37,31 @@ export default function Home() {
           </Typography>
 
           {Boolean(user) ? (
-            <Box sx={{ mb: "15px" }}>
-              <Link href={"/profile"}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  sx={{ background: "azure" }}
-                >
-                  Profile
-                </Button>
-              </Link>
-            </Box>
+            <>
+              <Box sx={{ mb: "15px" }}>
+                <Link href={"/profile"}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    sx={{ background: "azure" }}
+                  >
+                    Profile
+                  </Button>
+                </Link>
+              </Box>
+
+              <Box sx={{ mb: "15px" }}>
+                <Link href={"/training"}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    sx={{ background: "azure" }}
+                  >
+                    Training
+                  </Button>
+                </Link>
+              </Box>
+            </>
           ) : (
             <>
               <Box sx={{ mb: "15px" }}>

@@ -29,7 +29,7 @@ export const usePokemonRedirect = () => {
   useEffect(() => {
     if (
       fetchedData &&
-      Boolean(fetchedData["chosenPokemon"]) === false &&
+      Boolean(fetchedData["pokemonActive"]) === false &&
       pathname === "/profile"
     ) {
       router.push("/profile/create");
@@ -37,7 +37,7 @@ export const usePokemonRedirect = () => {
 
     if (
       fetchedData &&
-      Boolean(fetchedData["chosenPokemon"]) === true &&
+      Boolean(fetchedData["pokemonActive"]) === true &&
       pathname === "/profile/create"
     ) {
       router.push("/profile");
@@ -45,7 +45,7 @@ export const usePokemonRedirect = () => {
 
     if (
       fetchedData &&
-      Boolean(fetchedData["training"].isTraining) === true &&
+      fetchedData["training"].isTraining &&
       pathname === "/training"
     ) {
       router.push("/training/ground");
@@ -53,8 +53,44 @@ export const usePokemonRedirect = () => {
 
     if (
       fetchedData &&
-      Boolean(fetchedData["training"].isTraining) === false &&
+      Boolean(fetchedData["pokemonActive"]) === false &&
+      pathname === "/training"
+    ) {
+      router.push("/profile/create");
+    }
+
+    if (
+      fetchedData &&
+      Boolean(fetchedData["pokemonActive"]) === false &&
       pathname === "/training/ground"
+    ) {
+      router.push("/profile/create");
+    }
+
+    if (
+      fetchedData &&
+      fetchedData["training"].isTraining &&
+      pathname === "/training"
+    ) {
+      router.push("/training/ground");
+    }
+
+    if (
+      fetchedData &&
+      !fetchedData["training"].isTraining &&
+      pathname === "/training/ground"
+    ) {
+      router.push("/training");
+    }
+
+    if (fetchedData && fetchedData["fight"].isFight) {
+      router.push("/training/ground/fight");
+    }
+
+    if (
+      fetchedData &&
+      !fetchedData["fight"].isFight &&
+      pathname === "/training/ground/fight"
     ) {
       router.push("/training");
     }

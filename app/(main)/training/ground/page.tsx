@@ -9,7 +9,7 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import { saveUserData } from "@/app/_firebase/clientFirestireApi";
+import { postRequestToServer } from "@/app/_firebase/clientFirestireApi";
 import { useRouter } from "next/navigation";
 import PokemonMapCard from "@/app/_components/PokemonMapCard";
 import { trainingGroundDefaultSettings } from "@/app/_constants/constants";
@@ -21,13 +21,14 @@ export default function ProfilePage() {
   const router = useRouter();
 
   async function handleLeaveTraining() {
-    await saveUserData(fetchedData!.userId, {
-      ...fetchedData,
-      training: {
-        isTraining: false,
-      },
-    });
-    router.push("/training");
+    try {
+      await postRequestToServer(fetchedData!.userId, {
+        type: "leave-training",
+      });
+      router.push("/training");
+    } catch (error) {
+      console.error((error as Error).message);
+    }
   }
 
   useEffect(() => {
@@ -94,7 +95,7 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
-    if (fetchedData) {
+    if (fetchedData?.chosenPokemon) {
       setSettings((prev) => {
         return {
           ...prev,
@@ -108,7 +109,7 @@ export default function ProfilePage() {
     return <StaticBackdrop />;
   }
 
-  if (!fetchedData)
+  if (!fetchedData?.chosenPokemon || !fetchedData.training.isTraining)
     return (
       <Box>
         <Typography>Something went wrong.</Typography>

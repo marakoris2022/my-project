@@ -27,6 +27,10 @@ type TrainingProps = {
   };
 };
 
+type FightProps = {
+  isFight: boolean;
+};
+
 export type PokemonProps = {
   base_experience: number;
   height: number;
@@ -48,6 +52,9 @@ export type PokemonProfileProps = PokemonProps & {
   userId: string;
   playerName: string;
   training: TrainingProps;
+  fight: FightProps;
+  caughtPokes: string[];
+  pokemonActive: boolean;
 };
 
 const pokemonList = pokemonListFromJSON as PokemonProps[];
@@ -68,4 +75,9 @@ export function getPokemonListByExpRange(minExp: number, maxExp: number) {
     (pokemon) =>
       pokemon.base_experience >= minExp && pokemon.base_experience <= maxExp
   );
+}
+
+export function getPokemonListByNames(names: string[]) {
+  const pokemonByNames = names.map((name) => getPokemonByName(name));
+  return pokemonByNames.filter((item) => typeof item !== "undefined");
 }

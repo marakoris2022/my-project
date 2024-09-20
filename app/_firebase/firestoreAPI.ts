@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PokemonProfileProps } from "../_pokemonApi/pokemonDataApi";
 import { db } from "./firebaseConfig";
 import {
   collection,
@@ -57,26 +58,26 @@ export async function addUserData(userId: string, data: Record<string, any>) {
   }
 }
 
-type DynamicData = {
-  [key: string]: string; // динамические ключи со строковыми значениями
-};
+// type DynamicData = {
+//   [key: string]: string; // динамические ключи со строковыми значениями
+// };
 
-type UserData = DynamicData & {
-  id: string; // обязательное поле id
-  userId: string; // обязательное поле userId
-};
+// type UserData = DynamicData & {
+//   id: string; // обязательное поле id
+//   userId: string; // обязательное поле userId
+// };
 
 // Получить все документы из коллекции
 export async function getUserData(userId: string) {
   try {
     const querySnapshot = await getDocs(collection(db, "users"));
-    const data: UserData[] = querySnapshot.docs.map((doc) => {
+    const data: PokemonProfileProps[] = querySnapshot.docs.map((doc) => {
       const docData = doc.data(); // получаем данные документа
       return {
         id: doc.id, // id документа
         userId: docData.userId, // поле userId из данных
         ...docData, // остальные динамические поля
-      } as UserData; // явное приведение к типу UserData
+      } as PokemonProfileProps; // явное приведение к типу UserData
     });
 
     return data.find((doc) => doc.userId === userId);

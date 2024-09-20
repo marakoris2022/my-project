@@ -12,7 +12,7 @@ import {
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useAuth } from "../_customHooks/useAuth";
 import { User } from "firebase/auth";
-import { saveUserData } from "../_firebase/clientFirestireApi";
+import { postRequestToServer } from "../_firebase/clientFirestireApi";
 import { useRouter } from "next/navigation";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { PokemonProps } from "../_pokemonApi/pokemonDataApi";
@@ -23,17 +23,9 @@ async function addChosenPokemonToUserData(
   router: AppRouterInstance
 ) {
   try {
-    await saveUserData(user.uid, {
-      level: 0,
-      currentExp: 0,
-      playerName: user.displayName,
-      chosenPokemon: pokemonData.name,
-      currentHP: pokemonData.stats.hp,
-      maxHP: pokemonData.stats.hp,
-      training: {
-        isTraining: false,
-      },
-      ...pokemonData,
+    await postRequestToServer(user.uid, {
+      type: "choose-pokemon",
+      name: pokemonData.name,
     });
   } catch (error) {
     console.error((error as Error).message);
