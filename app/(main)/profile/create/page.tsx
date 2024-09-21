@@ -2,13 +2,12 @@
 
 import { Avatar, Box, Typography } from "@mui/material";
 import ItemCarousel from "@/app/_components/ItemCarousel";
-import { getPokemonListByExp } from "@/app/_pokemonApi/pokemonDataApi";
 import PokemonCard from "@/app/_components/PokemonCard";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
+import { getPokemonListByNames } from "@/app/_pokemonApi/pokemonDataApi";
 
 export default function ProfilePage() {
-  const pokemonDataList = getPokemonListByExp("inc").slice(0, 15);
   const { loading, fetchedData } = usePokemonRedirect();
 
   if (loading || fetchedData === undefined) {
@@ -23,12 +22,14 @@ export default function ProfilePage() {
       </Box>
     );
 
+  const pokemonDataList = getPokemonListByNames(fetchedData.caughtPokes);
+
   return (
     <Box>
-      {!Boolean(fetchedData["chosenPokemon"]) && (
+      {!Boolean(fetchedData["pokemonActive"]) && (
         <ItemCarousel
           mainTitle={"You need to choose Pokemon"}
-          title1={"You like it?"}
+          title1={`You have ${pokemonDataList.length} Pokemon's already.`}
           title2={"Dont forget to check next!"}
           bigItems={pokemonDataList.map((item, i) => (
             <PokemonCard key={i} pokemonData={item} />

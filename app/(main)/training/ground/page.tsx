@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, CardMedia, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
 import { useState, useEffect } from "react";
@@ -9,123 +9,30 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import { saveUserData } from "@/app/_firebase/clientFirestireApi";
+import { postRequestToServer } from "@/app/_firebase/clientFirestireApi";
 import { useRouter } from "next/navigation";
-import { getRandomInRange } from "@/app/_utils/utils";
-
-const defaultSettings = {
-  background: `url(/training-ground-${getRandomInRange(1, 4)}.webp)`,
-  lastButton: "down",
-  windowWidth: 800,
-  windowHeight: 500,
-  heroTop: 10,
-  heroLeft: 10,
-  step: 10,
-  opponent: {
-    a: {
-      top: getRandomInRange(50, 400),
-      left: getRandomInRange(50, 700),
-    },
-    b: {
-      top: getRandomInRange(50, 400),
-      left: getRandomInRange(50, 700),
-    },
-    c: {
-      top: getRandomInRange(50, 400),
-      left: getRandomInRange(50, 700),
-    },
-    d: {
-      top: getRandomInRange(50, 400),
-      left: getRandomInRange(50, 700),
-    },
-    e: {
-      top: getRandomInRange(50, 400),
-      left: getRandomInRange(50, 700),
-    },
-  },
-};
-
-function PokemonMapCard({
-  lastButton,
-  imageFront,
-  imageBack,
-  name,
-  top,
-  left,
-}: {
-  lastButton: string;
-  imageFront: string;
-  imageBack: string;
-  name: string;
-  top: number;
-  left: number;
-}) {
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        top: `${top}px`,
-        left: `${left}px`,
-        borderRadius: "7px",
-        padding: "5px",
-        overflow: "hidden",
-        background: "#f0ffff3d",
-        border: "solid 1px gray",
-      }}
-    >
-      <Typography
-        sx={{
-          textAlign: "center",
-          maxWidth: "80px",
-          fontSize: "14px",
-        }}
-      >
-        {name.toUpperCase()}
-      </Typography>
-      <CardMedia
-        component="img"
-        image={
-          lastButton === "down" || lastButton === "left"
-            ? imageFront
-            : imageBack
-        }
-        alt={name}
-        sx={{
-          width: "80px",
-          height: "80px",
-        }}
-      />
-    </Box>
-  );
-}
+import PokemonMapCard from "@/app/_components/PokemonMapCard";
+import { trainingGroundDefaultSettings } from "@/app/_constants/constants";
+import { calculateDistance } from "@/app/_utils/utils";
 
 export default function ProfilePage() {
   const { loading, fetchedData } = usePokemonRedirect();
-  const [settings, setSettings] = useState(defaultSettings);
+  const [settings, setSettings] = useState(trainingGroundDefaultSettings);
   const router = useRouter();
 
   async function handleLeaveTraining() {
-    await saveUserData(fetchedData!.userId, {
-      ...fetchedData,
-      training: {
-        isTraining: false,
-      },
-    });
-    router.push("/training");
-  }
-
-  // Функция для расчета расстояния между двумя точками
-  function calculateDistance(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number
-  ): number {
-    return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    try {
+      await postRequestToServer(fetchedData!.userId, {
+        type: "leave-training",
+      });
+      router.push("/training");
+    } catch (error) {
+      console.error((error as Error).message);
+    }
   }
 
   useEffect(() => {
-    function logDistances(settings: typeof defaultSettings) {
+    function logDistances(settings: typeof trainingGroundDefaultSettings) {
       const { heroTop, heroLeft, opponent } = settings;
       (Object.keys(opponent) as Array<"a" | "b" | "c" | "d" | "e">).forEach(
         (key) => {
@@ -187,36 +94,8 @@ export default function ProfilePage() {
     }));
   };
 
-  // // Обработка клавиатуры
-  // const handleKeyDown = useCallback((e: KeyboardEvent) => {
-  //   switch (e.key) {
-  //     case "ArrowLeft":
-  //       handleMoveLeft();
-  //       break;
-  //     case "ArrowRight":
-  //       handleMoveRight();
-  //       break;
-  //     case "ArrowUp":
-  //       handleMoveUp();
-  //       break;
-  //     case "ArrowDown":
-  //       handleMoveDown();
-  //       break;
-  //     default:
-  //       break;
-  //   }
-  // }, []);
-
-  // // Добавляем и удаляем обработчики событий для клавиатуры
-  // useEffect(() => {
-  //   window.addEventListener("keydown", handleKeyDown);
-  //   return () => {
-  //     window.removeEventListener("keydown", handleKeyDown);
-  //   };
-  // }, [handleKeyDown]);
-
   useEffect(() => {
-    if (fetchedData) {
+    if (fetchedData?.chosenPokemon) {
       setSettings((prev) => {
         return {
           ...prev,
@@ -230,7 +109,7 @@ export default function ProfilePage() {
     return <StaticBackdrop />;
   }
 
-  if (!fetchedData)
+  if (!fetchedData?.chosenPokemon || !fetchedData.training.isTraining)
     return (
       <Box>
         <Typography>Something went wrong.</Typography>

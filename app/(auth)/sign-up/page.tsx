@@ -10,7 +10,7 @@ import { useState } from "react";
 import { FirebaseAuthError } from "firebase-admin/auth";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/_customHooks/useAuth";
-import { saveUserData } from "@/app/_firebase/clientFirestireApi";
+import { postRequestToServer } from "@/app/_firebase/clientFirestireApi";
 
 export default function SignUp() {
   const {
@@ -53,7 +53,10 @@ export default function SignUp() {
       });
 
       // Добавляем UID в DB
-      await saveUserData(user.uid, {});
+      await postRequestToServer(user.uid, {
+        type: "registration",
+        userName: data.name,
+      });
 
       // Перенаправление после успешной регистрации
       router.push("/");

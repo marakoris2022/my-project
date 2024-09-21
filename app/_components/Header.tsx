@@ -11,6 +11,7 @@ import MeetingRoomIcon from "@mui/icons-material/MeetingRoom";
 import HouseIcon from "@mui/icons-material/House";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import AddReactionIcon from "@mui/icons-material/AddReaction";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 
 export default function Header() {
   const { user, loading } = useAuth();
@@ -62,6 +63,15 @@ export default function Header() {
                   endIcon={<HouseIcon />}
                 >
                   Main
+                </Button>
+              </Link>
+              <Link href={"/encyclopedia/1"}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  endIcon={<LibraryBooksIcon />}
+                >
+                  Encyclopedia
                 </Button>
               </Link>
               <Link href={"/profile"}>

@@ -1,5 +1,22 @@
 import pokemonListFromJSON from "../../pokemonData.json";
 
+type TrainingProps = {
+  isTraining: boolean;
+  trainingStarted: number;
+  trainingEnd: number;
+  opponents: {
+    a: PokemonProps;
+    b: PokemonProps;
+    c: PokemonProps;
+    d: PokemonProps;
+    e: PokemonProps;
+  };
+};
+
+type FightProps = {
+  isFight: boolean;
+};
+
 type SpritesProps = {
   back_default: string;
   front_default: string;
@@ -12,19 +29,6 @@ type StatsProps = {
   "special-attack": number;
   "special-defense": number;
   speed: number;
-};
-
-type TrainingProps = {
-  isTraining: boolean;
-  trainingStarted: number;
-  trainingEnd: number;
-  opponents: {
-    a: PokemonProps;
-    b: PokemonProps;
-    c: PokemonProps;
-    d: PokemonProps;
-    e: PokemonProps;
-  };
 };
 
 export type PokemonProps = {
@@ -48,6 +52,9 @@ export type PokemonProfileProps = PokemonProps & {
   userId: string;
   playerName: string;
   training: TrainingProps;
+  fight: FightProps;
+  caughtPokes: string[];
+  pokemonActive: boolean;
 };
 
 const pokemonList = pokemonListFromJSON as PokemonProps[];
@@ -61,4 +68,16 @@ export function getPokemonListByExp(by: "inc" | "dec") {
     return pokemonList.sort((a, b) => a.base_experience - b.base_experience);
   }
   return pokemonList.sort((a, b) => b.base_experience - a.base_experience);
+}
+
+export function getPokemonListByExpRange(minExp: number, maxExp: number) {
+  return pokemonList.filter(
+    (pokemon) =>
+      pokemon.base_experience >= minExp && pokemon.base_experience <= maxExp
+  );
+}
+
+export function getPokemonListByNames(names: string[]) {
+  const pokemonByNames = names.map((name) => getPokemonByName(name));
+  return pokemonByNames.filter((item) => typeof item !== "undefined");
 }

@@ -3,7 +3,7 @@ import { PokemonProfileProps } from "../_pokemonApi/pokemonDataApi";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "/api"; // Default to '/api' if env variable is not set
 
 // Save user data (POST)
-export async function saveUserData(
+export async function postRequestToServer(
   userId: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: Record<string, any>

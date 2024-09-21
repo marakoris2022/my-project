@@ -1,14 +1,11 @@
 "use client";
 
 import { Box, Typography } from "@mui/material";
-// import { useAuth } from "@/app/_customHooks/useAuth";
-// import { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation"; // Import the useRouter hook
-// import { fetchUserData } from "@/app/_firebase/clientFirestireApi";
-// import { PokemonProfileProps } from "@/app/_pokemonApi/pokemonDataApi";
 import PokemonProfilePage from "@/app/_components/ProfilePage";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
+import { getPokemonListByNames } from "@/app/_pokemonApi/pokemonDataApi";
+import PokemonEncyclopediaCard from "@/app/_components/PokemonEncyclopediaCard";
 
 export default function ProfilePage() {
   const { loading, fetchedData } = usePokemonRedirect();
@@ -25,10 +22,26 @@ export default function ProfilePage() {
       </Box>
     );
 
+  const pokemonDataList = getPokemonListByNames(fetchedData.caughtPokes);
+
   return (
     <Box>
-      {Boolean(fetchedData["chosenPokemon"]) && (
-        <PokemonProfilePage pokemon={fetchedData} />
+      {Boolean(fetchedData["pokemonActive"]) && (
+        <>
+          <PokemonProfilePage pokemon={fetchedData} />
+
+          <Typography
+            variant="h5"
+            sx={{ textAlign: "center", padding: "30px" }}
+            gutterBottom
+          >
+            Your Pokémon Inventory
+          </Typography>
+
+          {pokemonDataList.map((item) => (
+            <PokemonEncyclopediaCard key={item.name} pokemon={item} />
+          ))}
+        </>
       )}
     </Box>
   );

@@ -10,10 +10,7 @@ import {
   LinearProgress,
 } from "@mui/material";
 import { PokemonProfileProps } from "../_pokemonApi/pokemonDataApi";
-import {
-  deleteUserFromDB,
-  saveUserData,
-} from "../_firebase/clientFirestireApi";
+import { postRequestToServer } from "../_firebase/clientFirestireApi";
 import { useRouter } from "next/navigation";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ResponsiveDialog from "./ResponsiveDialog";
@@ -24,13 +21,14 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
   const router = useRouter();
 
   async function handleDelete() {
-    await deleteUserFromDB(pokemon.userId);
-    await saveUserData(pokemon.userId, {
-      training: {
-        isTraining: false,
-      },
-    });
-    router.push("/profile/create");
+    try {
+      await postRequestToServer(pokemon.userId, {
+        type: "remove-pokemon",
+      });
+      router.push("/profile/create");
+    } catch (error) {
+      console.error((error as Error).message);
+    }
   }
 
   return (
