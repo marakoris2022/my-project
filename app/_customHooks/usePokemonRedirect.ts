@@ -29,6 +29,22 @@ export const usePokemonRedirect = () => {
   useEffect(() => {
     if (
       fetchedData &&
+      Boolean(fetchedData["fight"].isFight) &&
+      pathname !== "/training/ground/fight"
+    ) {
+      router.push("/training/ground/fight");
+    }
+
+    if (
+      fetchedData &&
+      Boolean(fetchedData["fight"].isFight) === false &&
+      pathname === "/training/ground/fight"
+    ) {
+      router.push("/profile");
+    }
+
+    if (
+      fetchedData &&
       Boolean(fetchedData["pokemonActive"]) === false &&
       pathname === "/profile"
     ) {
@@ -86,15 +102,7 @@ export const usePokemonRedirect = () => {
     if (fetchedData && fetchedData["fight"].isFight) {
       router.push("/training/ground/fight");
     }
-
-    if (
-      fetchedData &&
-      !fetchedData["fight"].isFight &&
-      pathname === "/training/ground/fight"
-    ) {
-      router.push("/training");
-    }
   }, [fetchedData, pathname, router]);
 
-  return { loading, user, fetchedData };
+  return { loading, user, fetchedData, setFetchedData };
 };

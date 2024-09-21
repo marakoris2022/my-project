@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Fade, Typography } from "@mui/material";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
 import { useState, useEffect } from "react";
@@ -14,10 +14,14 @@ import { useRouter } from "next/navigation";
 import PokemonMapCard from "@/app/_components/PokemonMapCard";
 import { trainingGroundDefaultSettings } from "@/app/_constants/constants";
 import { calculateDistance } from "@/app/_utils/utils";
+import ResponsiveDialog from "@/app/_components/ResponsiveDialog";
 
 export default function ProfilePage() {
   const { loading, fetchedData } = usePokemonRedirect();
   const [settings, setSettings] = useState(trainingGroundDefaultSettings);
+  const [isFade, setIsFade] = useState(true);
+  const [isDialog, setIsDialog] = useState(false);
+
   const router = useRouter();
 
   async function handleLeaveTraining() {
@@ -28,6 +32,24 @@ export default function ProfilePage() {
       router.push("/training");
     } catch (error) {
       console.error((error as Error).message);
+    }
+  }
+
+  async function handlingFight(opponentName: string) {
+    setIsFade(false);
+
+    try {
+      await postRequestToServer(fetchedData!.userId, {
+        type: "training-fight",
+        opponentName,
+      });
+
+      setTimeout(() => {
+        router.push("/training/ground/fight");
+      }, 500);
+    } catch (error) {
+      console.error((error as Error).message);
+      handleLeaveTraining();
     }
   }
 
@@ -43,20 +65,15 @@ export default function ProfilePage() {
             opponent[key].top
           );
 
-          if (distance < 20) {
-            console.log(`Fight! ${fetchedData?.training.opponents[key]}`);
+          if (fetchedData && distance < 20) {
+            handlingFight(fetchedData.training.opponents[key].name);
           }
         }
       );
     }
 
     logDistances(settings);
-  }, [
-    settings.heroTop,
-    settings.heroLeft,
-    settings,
-    fetchedData?.training.opponents,
-  ]);
+  }, [settings, fetchedData]);
 
   // Функция для движения влево
   const handleMoveLeft = () => {
@@ -119,6 +136,14 @@ export default function ProfilePage() {
 
   return (
     <Box>
+      {/* DIALOG */}
+      <ResponsiveDialog
+        isOpen={isDialog}
+        setIsOpen={setIsDialog}
+        title={"Leave Training Ground"}
+        content={"Are you sure you want to leave Training Ground? "}
+        handleSubmit={handleLeaveTraining}
+      />
       <Typography
         sx={{
           textAlign: "center",
@@ -142,8 +167,25 @@ export default function ProfilePage() {
           border: "2px solid black",
           borderRadius: "10px",
           position: "relative",
+          overflow: "hidden",
         }}
       >
+        <Box sx={{ display: "flex" }}>
+          <Fade in={!isFade}>
+            <Box
+              sx={{
+                width: `${settings.windowWidth}px`,
+                height: `${settings.windowHeight}px`,
+                backgroundImage: settings.backgroundFight, // Добавляем фоновое изображение
+                backgroundSize: "cover", // Заставляем изображение заполнять всё пространство
+                backgroundPosition: "center", // Центрируем изображение
+                backgroundRepeat: "no-repeat", // Избегаем повторения изображения
+                position: "absolute",
+                zIndex: "999",
+              }}
+            ></Box>
+          </Fade>
+        </Box>
         {(
           Object.keys(fetchedData.training.opponents) as Array<
             "a" | "b" | "c" | "d" | "e"
@@ -207,7 +249,7 @@ export default function ProfilePage() {
 
         <Button
           variant="contained"
-          onClick={handleLeaveTraining}
+          onClick={() => setIsDialog(true)}
           endIcon={<ExitToAppIcon />}
           color="warning"
         >

@@ -30,6 +30,7 @@ export const newUserDefaultParams = {
 
 export const trainingGroundDefaultSettings = {
   background: `url(/training-ground-${getRandomInRange(1, 4)}.webp)`,
+  backgroundFight: `url(/training-ground-fight-${getRandomInRange(1, 4)}.webp)`,
   lastButton: "down",
   windowWidth: 800,
   windowHeight: 500,

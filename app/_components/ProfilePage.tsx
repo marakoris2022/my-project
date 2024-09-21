@@ -17,7 +17,7 @@ import ResponsiveDialog from "./ResponsiveDialog";
 
 function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
   const [isDialog, setIsDialog] = useState(false);
-  const hpPercentage = (pokemon.currentHP / pokemon.maxHP) * 100;
+  const hpPercentage = (pokemon.currentHP / pokemon.stats.hp) * 100;
   const router = useRouter();
 
   async function handleDelete() {
@@ -46,7 +46,7 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
         setIsOpen={setIsDialog}
         title={"Remove Current Pokémon"}
         content={
-          "Are you sure you want to remove the current Pokémon? You will lose all progress after confirming."
+          "You can cancel this Pokémon and choose another one from your inventory!"
         }
         handleSubmit={handleDelete}
       />
@@ -108,7 +108,8 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
               color="text.primary"
               sx={{ textAlign: "center" }}
             >
-              <strong>Current HP: </strong> {pokemon.currentHP}/{pokemon.maxHP}
+              <strong>Current HP: </strong> {pokemon.currentHP}/
+              {pokemon.stats.hp}
             </Typography>
             <LinearProgress
               variant="determinate"
@@ -165,7 +166,7 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <Typography variant="body2">HP: {pokemon.maxHP}</Typography>
+                <Typography variant="body2">HP: {pokemon.stats.hp}</Typography>
                 <Typography variant="body2">
                   Attack: {pokemon.stats.attack}
                 </Typography>
