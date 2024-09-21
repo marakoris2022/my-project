@@ -66,6 +66,7 @@ export type PokemonProfileProps = PokemonProps & {
   fight: FightProps;
   caughtPokes: string[];
   pokemonActive: boolean;
+  regeneration: boolean;
 };
 
 const pokemonList = pokemonListFromJSON as PokemonProps[];
