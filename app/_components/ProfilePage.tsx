@@ -17,6 +17,9 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ResponsiveDialog from "./ResponsiveDialog";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
+import SyncOutlinedIcon from "@mui/icons-material/SyncOutlined";
+import MedicationLiquidIcon from "@mui/icons-material/MedicationLiquid";
+import { getUserData } from "../_firebase/firestoreAPI";
 
 function PokemonProfilePage({
   pokemon,
@@ -43,14 +46,20 @@ function PokemonProfilePage({
     }
   }
 
+  async function handleReset() {
+    setFetchedData(await getUserData(pokemon.userId));
+  }
+
   async function handleRegenHP() {
-    try {
-      await postRequestToServer(pokemon.userId, {
-        type: "start-regeneration",
-      });
-      setRegenerationMessage(true);
-    } catch (error) {
-      console.error((error as Error).message);
+    if (pokemon.currentHP < pokemon.stats.hp) {
+      try {
+        await postRequestToServer(pokemon.userId, {
+          type: "start-regeneration",
+        });
+        handleReset();
+      } catch (error) {
+        console.error((error as Error).message);
+      }
     }
   }
 
@@ -73,7 +82,7 @@ function PokemonProfilePage({
     }
     if (
       !regenerationMessage &&
-      pokemon.regeneration &&
+      pokemon.regeneration.isRegen &&
       pokemon.currentHP !== pokemon.stats.hp
     ) {
       setRegenerationMessage(true);
@@ -171,12 +180,16 @@ function PokemonProfilePage({
 
               <IconButton
                 disabled={
-                  pokemon.currentHP === pokemon.stats.hp || regenerationMessage
+                  pokemon.currentHP === pokemon.stats.hp ||
+                  pokemon.regeneration.isRegen
                 }
                 sx={{ color: "green" }}
                 onClick={handleRegenHP}
               >
                 <LocalHospitalIcon />
+              </IconButton>
+              <IconButton sx={{ color: "blue" }} onClick={handleReset}>
+                <SyncOutlinedIcon />
               </IconButton>
             </Box>
             <LinearProgress
@@ -189,11 +202,25 @@ function PokemonProfilePage({
                 marginTop: 1,
               }}
             />
-            {regenerationMessage && (
+            {pokemon.regeneration.isRegen && (
               <Typography
                 sx={{ fontSize: "14px", color: "green", textAlign: "center" }}
               >
-                Regeneration...
+                {pokemon.regeneration.endRegen - Date.now() > 0 ? (
+                  `Brewing Healing Potion...
+                ${Math.round(
+                  (pokemon.regeneration.endRegen - Date.now()) / 1000
+                )}
+                s`
+                ) : (
+                  <Button
+                    endIcon={<MedicationLiquidIcon />}
+                    sx={{ color: "green" }}
+                    onClick={handleRegenHP}
+                  >
+                    Potion ready
+                  </Button>
+                )}
               </Typography>
             )}
           </Box>
