@@ -44,6 +44,16 @@ export async function POST(req: NextRequest) {
 
       const docId = await upsertUserData(userId, {
         pokemonActive: false,
+        fight: {
+          isFight: false,
+        },
+        training: {
+          isTraining: false,
+        },
+        regeneration: {
+          isRegen: false,
+          endRegen: 0,
+        },
       });
 
       const response = NextResponse.json(
@@ -148,47 +158,51 @@ export async function POST(req: NextRequest) {
           throw new Error("You can't regenerate while fighting.");
         }
 
-        if (userData.regeneration) {
-          throw new Error("You are already regenerating your HP.");
-        }
-
         if (userData.currentHP === userData.stats.hp) {
           throw new Error("You are already at full health.");
         }
 
-        const docId = await upsertUserData(userId, {
-          regeneration: true,
-        });
+        if (
+          !userData.regeneration.isRegen &&
+          userData.currentHP < userData.stats.hp
+        ) {
+          const healingTime = (userData.stats.hp - userData.currentHP) * 2000;
+          const endTime = Date.now() + healingTime;
 
-        const regenInterval = setInterval(async () => {
-          try {
-            const currentData = await getUserData(userId);
+          await upsertUserData(userId, {
+            regeneration: {
+              isRegen: true,
+              endRegen: endTime,
+            },
+          });
 
-            if (currentData && currentData.currentHP < currentData.stats.hp) {
-              let restoredHealth = currentData.currentHP + 3;
+          return NextResponse.json(
+            { message: "Regeneration started successfully.", endTime },
+            { status: 200 }
+          );
+        }
 
-              if (restoredHealth > currentData.stats.hp) {
-                restoredHealth = currentData.stats.hp;
-              }
+        if (
+          userData.regeneration.isRegen &&
+          userData.currentHP < userData.stats.hp &&
+          userData.regeneration.endRegen - Date.now() <= 0
+        ) {
+          await upsertUserData(userId, {
+            currentHP: userData.stats.hp,
+            regeneration: {
+              isRegen: false,
+              endRegen: 0,
+            },
+          });
 
-              await upsertUserData(userId, {
-                currentHP: restoredHealth,
-              });
-            } else {
-              clearInterval(regenInterval);
-              await upsertUserData(userId, {
-                regeneration: false,
-              }); // Сброс статуса регенерации
-            }
-          } catch (error) {
-            console.error("Error during regeneration:", error);
-            clearInterval(regenInterval);
-            await upsertUserData(userId, { regeneration: false }); // Сброс статуса
-          }
-        }, 5000);
+          return NextResponse.json(
+            { message: "Regeneration finished successfully." },
+            { status: 200 }
+          );
+        }
 
         return NextResponse.json(
-          { message: "Regeneration started successfully.", docId },
+          { message: "Regeneration started successfully." },
           { status: 200 }
         );
       } catch (error) {

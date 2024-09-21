@@ -11,7 +11,10 @@ export const newUserDefaultParams = {
   level: 0,
   currentExp: 100,
   pokemonActive: false,
-  regeneration: false,
+  regeneration: {
+    isRegen: false,
+    endRegen: 0,
+  },
   training: {
     isTraining: false,
   },
