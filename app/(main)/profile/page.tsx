@@ -16,7 +16,11 @@ export default function ProfilePage() {
   useEffect(() => {
     let regenInterval: NodeJS.Timeout; // Для хранения идентификатора интервала
 
-    if (fetchedData && fetchedData.currentHP < fetchedData.stats.hp) {
+    if (
+      fetchedData &&
+      fetchedData.stats &&
+      fetchedData.currentHP < fetchedData.stats.hp
+    ) {
       setRegenerate(true);
 
       regenInterval = setInterval(async () => {

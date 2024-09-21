@@ -9,7 +9,7 @@ export const POKEMON_TRAINING_GROUND_RANGE = {
 
 export const newUserDefaultParams = {
   level: 0,
-  currentExp: 0,
+  currentExp: 100,
   pokemonActive: false,
   regeneration: false,
   training: {
