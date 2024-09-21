@@ -18,6 +18,7 @@ import ResponsiveDialog from "./ResponsiveDialog";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 import SyncOutlinedIcon from "@mui/icons-material/SyncOutlined";
+import MedicationLiquidIcon from "@mui/icons-material/MedicationLiquid";
 import { getUserData } from "../_firebase/firestoreAPI";
 
 function PokemonProfilePage({
@@ -212,7 +213,11 @@ function PokemonProfilePage({
                 )}
                 s`
                 ) : (
-                  <Button sx={{ color: "green" }} onClick={handleRegenHP}>
+                  <Button
+                    endIcon={<MedicationLiquidIcon />}
+                    sx={{ color: "green" }}
+                    onClick={handleRegenHP}
+                  >
                     Potion ready
                   </Button>
                 )}
