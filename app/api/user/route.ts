@@ -103,6 +103,41 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
+    if (data.type === "increase-stat") {
+      const request = data as {
+        type: string;
+        statKey:
+          | "attack"
+          | "defense"
+          | "hp"
+          | "special-attack"
+          | "special-defense"
+          | "speed";
+      };
+
+      if (userData.currentExp < 10) throw new Error("You don't have exp!");
+
+      // Увеличиваем нужную статистику на 1
+      const updatedStats = {
+        ...userData.stats,
+        [request.statKey]: userData.stats[request.statKey] + 1,
+      };
+
+      await upsertUserData(userId, {
+        stats: updatedStats,
+        currentExp: userData.currentExp - 10, // Уменьшаем опыт на 10
+      });
+
+      const updateUseData = await getUserData(userId);
+
+      const response = NextResponse.json(
+        { message: "Stat increased successfully.", updateUseData },
+        { status: 200 }
+      );
+
+      return response;
+    }
+
     if (data.type === "start-regeneration") {
       try {
         if (userData.training.isTraining) {

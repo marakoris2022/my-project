@@ -55,7 +55,10 @@ export default function ProfilePage() {
     <Box>
       {Boolean(fetchedData["pokemonActive"]) && (
         <>
-          <PokemonProfilePage pokemon={fetchedData} />
+          <PokemonProfilePage
+            setFetchedData={setFetchedData}
+            pokemon={fetchedData}
+          />
 
           <Typography
             variant="h5"

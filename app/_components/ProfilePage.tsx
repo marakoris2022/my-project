@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -16,8 +16,17 @@ import { useRouter } from "next/navigation";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ResponsiveDialog from "./ResponsiveDialog";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import AddCircleOutlineOutlinedIcon from "@mui/icons-material/AddCircleOutlineOutlined";
 
-function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
+function PokemonProfilePage({
+  pokemon,
+  setFetchedData,
+}: {
+  pokemon: PokemonProfileProps;
+  setFetchedData: Dispatch<
+    SetStateAction<PokemonProfileProps | null | undefined>
+  >;
+}) {
   const [isDialog, setIsDialog] = useState(false);
   const [regenerationMessage, setRegenerationMessage] = useState(false);
   const hpPercentage = (pokemon.currentHP / pokemon.stats.hp) * 100;
@@ -40,6 +49,19 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
         type: "start-regeneration",
       });
       setRegenerationMessage(true);
+    } catch (error) {
+      console.error((error as Error).message);
+    }
+  }
+
+  async function handleUpStat(statKey: string) {
+    try {
+      const response = await postRequestToServer(pokemon.userId, {
+        type: "increase-stat",
+        statKey,
+      });
+
+      if (response) setFetchedData(response.updateUseData);
     } catch (error) {
       console.error((error as Error).message);
     }
@@ -146,6 +168,7 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
                 <strong>Current HP: </strong> {pokemon.currentHP}/
                 {pokemon.stats.hp}
               </Typography>
+
               <IconButton
                 disabled={
                   pokemon.currentHP === pokemon.stats.hp || regenerationMessage
@@ -217,24 +240,155 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <Typography variant="body2">HP: {pokemon.stats.hp}</Typography>
-                <Typography variant="body2">
-                  Attack: {pokemon.stats.attack}
-                </Typography>
-                <Typography variant="body2">
-                  Defense: {pokemon.stats.defense}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Typography variant="body2">
+                    <Typography
+                      sx={{
+                        display: "inline-block",
+                        width: "150px",
+                        height: "25px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      HP:
+                    </Typography>{" "}
+                    {pokemon.stats.hp}
+                  </Typography>
+
+                  {pokemon.currentExp >= 10 && (
+                    <IconButton
+                      onClick={() => handleUpStat("hp")}
+                      size="small"
+                      sx={{ padding: 0, color: "green" }}
+                    >
+                      <AddCircleOutlineOutlinedIcon sx={{ fontSize: "1rem" }} />
+                    </IconButton>
+                  )}
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Typography variant="body2">
+                    <Typography
+                      sx={{
+                        display: "inline-block",
+                        width: "150px",
+                        height: "25px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Attack:
+                    </Typography>{" "}
+                    {pokemon.stats.attack}
+                  </Typography>
+                  {pokemon.currentExp >= 10 && (
+                    <IconButton
+                      onClick={() => handleUpStat("attack")}
+                      size="small"
+                      sx={{ padding: 0, color: "green" }}
+                    >
+                      <AddCircleOutlineOutlinedIcon sx={{ fontSize: "1rem" }} />
+                    </IconButton>
+                  )}
+                </Box>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Typography variant="body2">
+                    <Typography
+                      sx={{
+                        display: "inline-block",
+                        width: "150px",
+                        height: "25px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Defense:
+                    </Typography>{" "}
+                    {pokemon.stats.defense}
+                  </Typography>
+                  {pokemon.currentExp >= 10 && (
+                    <IconButton
+                      onClick={() => handleUpStat("defense")}
+                      size="small"
+                      sx={{ padding: 0, color: "green" }}
+                    >
+                      <AddCircleOutlineOutlinedIcon sx={{ fontSize: "1rem" }} />
+                    </IconButton>
+                  )}
+                </Box>
               </Grid>
               <Grid item xs={6}>
-                <Typography variant="body2">
-                  Speed: {pokemon.stats.speed}
-                </Typography>
-                <Typography variant="body2">
-                  Special Attack: {pokemon.stats["special-attack"]}
-                </Typography>
-                <Typography variant="body2">
-                  Special Defense: {pokemon.stats["special-defense"]}
-                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Typography variant="body2">
+                    <Typography
+                      sx={{
+                        display: "inline-block",
+                        width: "150px",
+                        height: "25px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Speed:
+                    </Typography>{" "}
+                    {pokemon.stats.speed}
+                  </Typography>
+                  {pokemon.currentExp >= 10 && (
+                    <IconButton
+                      onClick={() => handleUpStat("speed")}
+                      size="small"
+                      sx={{ padding: 0, color: "green" }}
+                    >
+                      <AddCircleOutlineOutlinedIcon sx={{ fontSize: "1rem" }} />
+                    </IconButton>
+                  )}
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Typography variant="body2">
+                    <Typography
+                      sx={{
+                        display: "inline-block",
+                        width: "150px",
+                        height: "25px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Special Attack:
+                    </Typography>{" "}
+                    {pokemon.stats["special-attack"]}
+                  </Typography>
+                  {pokemon.currentExp >= 10 && (
+                    <IconButton
+                      onClick={() => handleUpStat("special-attack")}
+                      size="small"
+                      sx={{ padding: 0, color: "green" }}
+                    >
+                      <AddCircleOutlineOutlinedIcon sx={{ fontSize: "1rem" }} />
+                    </IconButton>
+                  )}
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Typography variant="body2">
+                    <Typography
+                      sx={{
+                        display: "inline-block",
+                        width: "150px",
+                        height: "25px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Special Defense:
+                    </Typography>{" "}
+                    {pokemon.stats["special-defense"]}
+                  </Typography>
+                  {pokemon.currentExp >= 10 && (
+                    <IconButton
+                      onClick={() => handleUpStat("special-defense")}
+                      size="small"
+                      sx={{ padding: 0, color: "green" }}
+                    >
+                      <AddCircleOutlineOutlinedIcon sx={{ fontSize: "1rem" }} />
+                    </IconButton>
+                  )}
+                </Box>
               </Grid>
             </Grid>
           </Box>
