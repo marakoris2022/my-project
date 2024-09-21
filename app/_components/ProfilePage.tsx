@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -8,15 +8,18 @@ import {
   Avatar,
   Button,
   LinearProgress,
+  IconButton,
 } from "@mui/material";
 import { PokemonProfileProps } from "../_pokemonApi/pokemonDataApi";
 import { postRequestToServer } from "../_firebase/clientFirestireApi";
 import { useRouter } from "next/navigation";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import ResponsiveDialog from "./ResponsiveDialog";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 
 function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
   const [isDialog, setIsDialog] = useState(false);
+  const [regenerationMessage, setRegenerationMessage] = useState(false);
   const hpPercentage = (pokemon.currentHP / pokemon.stats.hp) * 100;
   const router = useRouter();
 
@@ -30,6 +33,30 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
       console.error((error as Error).message);
     }
   }
+
+  async function handleRegenHP() {
+    try {
+      await postRequestToServer(pokemon.userId, {
+        type: "start-regeneration",
+      });
+      setRegenerationMessage(true);
+    } catch (error) {
+      console.error((error as Error).message);
+    }
+  }
+
+  useEffect(() => {
+    if (pokemon.currentHP === pokemon.stats.hp && regenerationMessage) {
+      setRegenerationMessage(false);
+    }
+    if (
+      !regenerationMessage &&
+      pokemon.regeneration &&
+      pokemon.currentHP !== pokemon.stats.hp
+    ) {
+      setRegenerationMessage(true);
+    }
+  }, [pokemon, regenerationMessage]);
 
   return (
     <Box
@@ -103,18 +130,35 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
 
           {/* HP Bar */}
           <Box sx={{ marginTop: 3, marginBottom: 3, width: "300px" }}>
-            <Typography
-              variant="body1"
-              color="text.primary"
-              sx={{ textAlign: "center" }}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "15px",
+              }}
             >
-              <strong>Current HP: </strong> {pokemon.currentHP}/
-              {pokemon.stats.hp}
-            </Typography>
+              <Typography
+                variant="body1"
+                color="text.primary"
+                sx={{ textAlign: "center" }}
+              >
+                <strong>Current HP: </strong> {pokemon.currentHP}/
+                {pokemon.stats.hp}
+              </Typography>
+              <IconButton
+                disabled={
+                  pokemon.currentHP === pokemon.stats.hp || regenerationMessage
+                }
+                sx={{ color: "green" }}
+                onClick={handleRegenHP}
+              >
+                <LocalHospitalIcon />
+              </IconButton>
+            </Box>
             <LinearProgress
               variant="determinate"
               value={hpPercentage}
-              //   color={hpPercentage > 50 ? "primary" : "secondary"}
               color={"error"}
               sx={{
                 height: 10,
@@ -122,6 +166,13 @@ function PokemonProfilePage({ pokemon }: { pokemon: PokemonProfileProps }) {
                 marginTop: 1,
               }}
             />
+            {regenerationMessage && (
+              <Typography
+                sx={{ fontSize: "14px", color: "green", textAlign: "center" }}
+              >
+                Regeneration...
+              </Typography>
+            )}
           </Box>
 
           {/* Основная информация */}

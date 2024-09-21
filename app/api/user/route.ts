@@ -103,6 +103,67 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
+    if (data.type === "start-regeneration") {
+      try {
+        if (userData.training.isTraining) {
+          throw new Error("You can't regenerate while training.");
+        }
+
+        if (userData.fight.isFight) {
+          throw new Error("You can't regenerate while fighting.");
+        }
+
+        if (userData.regeneration) {
+          throw new Error("You are already regenerating your HP.");
+        }
+
+        if (userData.currentHP === userData.stats.hp) {
+          throw new Error("You are already at full health.");
+        }
+
+        const docId = await upsertUserData(userId, {
+          regeneration: true,
+        });
+
+        const regenInterval = setInterval(async () => {
+          try {
+            const currentData = await getUserData(userId);
+
+            if (currentData && currentData.currentHP < currentData.stats.hp) {
+              let restoredHealth = currentData.currentHP + 3;
+
+              if (restoredHealth > currentData.stats.hp) {
+                restoredHealth = currentData.stats.hp;
+              }
+
+              await upsertUserData(userId, {
+                currentHP: restoredHealth,
+              });
+            } else {
+              clearInterval(regenInterval);
+              await upsertUserData(userId, {
+                regeneration: false,
+              }); // Сброс статуса регенерации
+            }
+          } catch (error) {
+            console.error("Error during regeneration:", error);
+            clearInterval(regenInterval);
+            await upsertUserData(userId, { regeneration: false }); // Сброс статуса
+          }
+        }, 5000);
+
+        return NextResponse.json(
+          { message: "Regeneration started successfully.", docId },
+          { status: 200 }
+        );
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
     if (data.type === "start-training") {
       try {
         if (userData.training.isTraining)
