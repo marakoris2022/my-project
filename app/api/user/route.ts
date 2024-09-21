@@ -106,9 +106,24 @@ export async function POST(req: NextRequest) {
     if (data.type === "start-training") {
       try {
         if (userData.training.isTraining)
-          throw new Error("You are already training");
+          return NextResponse.json(
+            { error: "You are already training" },
+            { status: 400 }
+          );
 
-        if (!userData.pokemonActive) throw new Error("You don't have Pokemon");
+        if (!userData.pokemonActive)
+          return NextResponse.json(
+            { error: "You don't have a Pokemon" },
+            { status: 400 }
+          );
+
+        if (userData.currentHP < userData.stats.hp)
+          return NextResponse.json(
+            {
+              error: "You must restore your health to enter a training ground.",
+            },
+            { status: 400 }
+          );
 
         const pokemonDataList = getPokemonListByExpRange(
           userData!.currentExp - POKEMON_TRAINING_GROUND_RANGE.MINUS,

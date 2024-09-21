@@ -18,13 +18,18 @@ export async function postRequestToServer(
     });
 
     const result = await response.json();
+
+    // Если запрос успешен (статус 200–299)
     if (response.ok) {
-      return result; // Return the result for further use if needed
+      return result; // Возвращаем результат для дальнейшего использования
     } else {
-      console.error("Error saving user data:", result);
+      // Если ошибка от сервера (400 или выше)
+      throw new Error(result.error || "Post request Error!");
     }
   } catch (error) {
+    // Логируем ошибку и выбрасываем её для дальнейшей обработки
     console.error("Request failed:", error);
+    throw error; // Позволяет обработать ошибку в вызывающем коде
   }
 }
 

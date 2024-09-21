@@ -22,6 +22,7 @@ import { POKEMON_TRAINING_GROUND_RANGE } from "@/app/_constants/constants";
 
 export default function ProfilePage() {
   const { loading, fetchedData } = usePokemonRedirect();
+  const [error, setError] = useState("");
   const [pokemonDataList, setPokemonDataList] = useState<PokemonProps[]>([]);
   const router = useRouter();
 
@@ -41,6 +42,11 @@ export default function ProfilePage() {
   }
 
   async function handleTraining() {
+    if (fetchedData && fetchedData.currentHP < fetchedData.stats.hp) {
+      setError("You must restore your health to enter a training ground.");
+      return;
+    }
+
     try {
       await postRequestToServer(fetchedData!.userId, {
         type: "start-training",
@@ -48,7 +54,8 @@ export default function ProfilePage() {
 
       router.push("/training/ground");
     } catch (error) {
-      console.error((error as Error).message);
+      // console.error((error as Error).message);
+      console.log("error", error);
     }
   }
 
@@ -92,6 +99,11 @@ export default function ProfilePage() {
         >
           Start Training
         </Button>
+        {Boolean(error) && (
+          <Typography sx={{ fontSize: "14px", color: "red" }} gutterBottom>
+            {error}
+          </Typography>
+        )}
         <Typography variant="h6" gutterBottom>
           You can find these enemies based on your current experience.
         </Typography>
