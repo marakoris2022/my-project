@@ -60,10 +60,7 @@ export default function ProfilePage() {
       </Box>
     );
 
-  const { stats, currentExp, maxHP, level, training } = fetchedData;
-  const timeRemaining = Math.max(0, training.trainingEnd - Date.now());
-  const minutesRemaining = Math.floor(timeRemaining / 60000);
-  const secondsRemaining = Math.floor((timeRemaining % 60000) / 1000);
+  const { stats, currentExp, level, currentHP } = fetchedData;
 
   if (fetchedData && !fetchedData["training"].isTraining)
     return (
@@ -82,7 +79,7 @@ export default function ProfilePage() {
             <Typography>Level: {level}</Typography>
             <Typography>Experience: {currentExp}</Typography>
             <Typography>
-              Health: {stats.hp}/{maxHP}
+              Health: {currentHP}/{stats.hp}
             </Typography>
             <Typography>Speed: {stats.speed}</Typography>
           </CardContent>
@@ -128,31 +125,4 @@ export default function ProfilePage() {
         </Grid>
       </Box>
     );
-
-  return (
-    <Box sx={{ textAlign: "center", padding: "20px" }}>
-      <Typography variant="h4" gutterBottom>
-        Training Ground
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        Your training session is in progress.
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        Time remaining: {minutesRemaining}m {secondsRemaining}s
-      </Typography>
-      <Typography variant="h6" gutterBottom>
-        Current Pokémon Stats
-      </Typography>
-      <Card sx={{ margin: "20px auto", maxWidth: "400px" }}>
-        <CardContent>
-          <Typography>Level: {level}</Typography>
-          <Typography>Experience: {currentExp}</Typography>
-          <Typography>
-            Health: {stats.hp}/{maxHP}
-          </Typography>
-          <Typography>Speed: {stats.speed}</Typography>
-        </CardContent>
-      </Card>
-    </Box>
-  );
 }

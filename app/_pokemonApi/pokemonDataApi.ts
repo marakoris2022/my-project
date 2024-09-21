@@ -1,5 +1,11 @@
 import pokemonListFromJSON from "../../pokemonData.json";
 
+type BattleStatusProps = {
+  timeStart: number;
+  attack: null | string;
+  block: null | string;
+};
+
 type TrainingProps = {
   isTraining: boolean;
   trainingStarted: number;
@@ -13,8 +19,14 @@ type TrainingProps = {
   };
 };
 
+type FightOpponent = PokemonProps & {
+  currentHP: number;
+};
+
 type FightProps = {
   isFight: boolean;
+  opponent: FightOpponent;
+  battleStatus: BattleStatusProps;
 };
 
 type SpritesProps = {
@@ -48,7 +60,6 @@ export type PokemonProfileProps = PokemonProps & {
   currentHP: number;
   id: string;
   level: number;
-  maxHP: number;
   userId: string;
   playerName: string;
   training: TrainingProps;
