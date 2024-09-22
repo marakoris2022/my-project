@@ -5,8 +5,6 @@ import {
   Button,
   Grid,
   Typography,
-  Select,
-  MenuItem,
   Card,
   CardContent,
   Avatar,
@@ -15,6 +13,11 @@ import {
   Paper,
   LinearProgress,
   CardMedia,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from "@mui/material";
 
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
@@ -95,6 +98,10 @@ export default function FightPage() {
         setLog((prevLog) => [generateFightLog(response.fightData), ...prevLog]);
         setFetchedData(response.userData);
       }
+
+      const move = ["head", "body", "hands", "legs"];
+      setAttack(move[getRandomInRange(0, 3)]);
+      setBlock(move[getRandomInRange(0, 3)]);
     } catch (error) {
       console.error((error as Error).message);
     }
@@ -289,29 +296,94 @@ export default function FightPage() {
                 padding: 2,
               }}
             >
-              <Typography variant="h5">Выберите атаку и блок</Typography>
-              <Select
-                value={attack}
-                onChange={(e) => setAttack(e.target.value)}
-                displayEmpty
-                fullWidth
-              >
-                <MenuItem value="head">Head</MenuItem>
-                <MenuItem value="body">Body</MenuItem>
-                <MenuItem value="hands">Hands</MenuItem>
-                <MenuItem value="legs">Legs</MenuItem>
-              </Select>
-              <Select
-                value={block}
-                onChange={(e) => setBlock(e.target.value)}
-                displayEmpty
-                fullWidth
-              >
-                <MenuItem value="head">Head</MenuItem>
-                <MenuItem value="body">Body</MenuItem>
-                <MenuItem value="hands">Hands</MenuItem>
-                <MenuItem value="legs">Legs</MenuItem>
-              </Select>
+              {/* const [attack, setAttack] = useState("head"); // состояние для
+              Attack const [block, setBlock] = useState("head"); // состояние
+              для Block return ( */}
+              <Box sx={{ display: "flex", flexDirection: "row", gap: "15px" }}>
+                {/* Форма атаки */}
+                <FormControl sx={{ textAlign: "start" }}>
+                  <FormLabel id="attack-form">Attack</FormLabel>
+                  <RadioGroup
+                    row
+                    aria-labelledby="attack-form"
+                    name="attack"
+                    value={attack} // контроль через значение состояния
+                    sx={{ display: "flex", flexDirection: "column" }}
+                    onChange={(e) => {
+                      setAttack(e.target.value); // обновление состояния
+                    }}
+                  >
+                    <FormControlLabel
+                      value="head"
+                      control={<Radio />}
+                      label="Head"
+                      labelPlacement="start"
+                    />
+                    <FormControlLabel
+                      value="body"
+                      control={<Radio />}
+                      label="Body"
+                      labelPlacement="start"
+                    />
+                    <FormControlLabel
+                      value="hands"
+                      control={<Radio />}
+                      label="Hands"
+                      labelPlacement="start"
+                    />
+                    <FormControlLabel
+                      value="legs"
+                      control={<Radio />}
+                      label="Legs"
+                      labelPlacement="start"
+                    />
+                  </RadioGroup>
+                </FormControl>
+
+                <Box
+                  sx={{ height: "inherit", width: "3px", background: "gray" }}
+                />
+
+                {/* Форма блока */}
+                <FormControl sx={{ textAlign: "end" }}>
+                  <FormLabel id="block-form">Block</FormLabel>
+                  <RadioGroup
+                    row
+                    aria-labelledby="block-form"
+                    name="block"
+                    value={block} // контроль через значение состояния
+                    sx={{ display: "flex", flexDirection: "column" }}
+                    onChange={(e) => {
+                      setBlock(e.target.value); // обновление состояния
+                    }}
+                  >
+                    <FormControlLabel
+                      value="head"
+                      control={<Radio />}
+                      label="Head"
+                      labelPlacement="end"
+                    />
+                    <FormControlLabel
+                      value="body"
+                      control={<Radio />}
+                      label="Body"
+                      labelPlacement="end"
+                    />
+                    <FormControlLabel
+                      value="hands"
+                      control={<Radio />}
+                      label="Hands"
+                      labelPlacement="end"
+                    />
+                    <FormControlLabel
+                      value="legs"
+                      control={<Radio />}
+                      label="Legs"
+                      labelPlacement="end"
+                    />
+                  </RadioGroup>
+                </FormControl>
+              </Box>
 
               <Box sx={{ display: "flex", gap: "20px" }}>
                 <Button

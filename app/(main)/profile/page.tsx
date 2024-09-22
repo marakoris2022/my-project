@@ -41,8 +41,8 @@ export default function ProfilePage() {
             Your Pokémon Inventory
           </Typography>
 
-          {pokemonDataList.map((item) => (
-            <PokemonEncyclopediaCard key={item.name} pokemon={item} />
+          {pokemonDataList.map((item, i) => (
+            <PokemonEncyclopediaCard key={`item.name_${i}`} pokemon={item} />
           ))}
         </>
       )}

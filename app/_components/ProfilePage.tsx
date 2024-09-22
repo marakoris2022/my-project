@@ -31,7 +31,8 @@ function PokemonProfilePage({
   >;
 }) {
   const [isDialog, setIsDialog] = useState(false);
-  const [regenerationMessage, setRegenerationMessage] = useState(false);
+  // const [regenerationMessage, setRegenerationMessage] = useState(false);
+  const [regenTime, setRegenTime] = useState(0);
   const hpPercentage = (pokemon.currentHP / pokemon.stats.hp) * 100;
   const router = useRouter();
 
@@ -77,17 +78,18 @@ function PokemonProfilePage({
   }
 
   useEffect(() => {
-    if (pokemon.currentHP === pokemon.stats.hp && regenerationMessage) {
-      setRegenerationMessage(false);
+    function checkRegeneration() {
+      if (pokemon.regeneration.isRegen) {
+        setRegenTime(
+          Math.round((pokemon.regeneration.endRegen - Date.now()) / 1000)
+        );
+        setTimeout(() => {
+          checkRegeneration();
+        }, 1000);
+      }
     }
-    if (
-      !regenerationMessage &&
-      pokemon.regeneration.isRegen &&
-      pokemon.currentHP !== pokemon.stats.hp
-    ) {
-      setRegenerationMessage(true);
-    }
-  }, [pokemon, regenerationMessage]);
+    checkRegeneration();
+  }, [pokemon]);
 
   return (
     <Box
@@ -208,9 +210,7 @@ function PokemonProfilePage({
               >
                 {pokemon.regeneration.endRegen - Date.now() > 0 ? (
                   `Brewing Healing Potion...
-                ${Math.round(
-                  (pokemon.regeneration.endRegen - Date.now()) / 1000
-                )}
+                ${regenTime}
                 s`
                 ) : (
                   <Button
