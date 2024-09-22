@@ -6,6 +6,7 @@ import {
   deleteBattleRoom,
   getBattleRooms,
   getUserData,
+  getUserDataByName,
   upsertUserData,
 } from "@/app/_firebase/firestoreAPI";
 import {
@@ -22,6 +23,21 @@ import { getRandomInRange } from "@/app/_utils/utils";
 export async function POST(req: NextRequest) {
   try {
     const { userId, data } = await req.json();
+
+    if (data.type === "check-user-name") {
+      const requestBody = data as {
+        type: string;
+        userName: string;
+      };
+
+      const respond = await getUserDataByName(requestBody.userName);
+
+      const response = respond
+        ? NextResponse.json({ message: "User name busy." }, { status: 200 })
+        : NextResponse.json({ message: "User name free." }, { status: 200 });
+
+      return response;
+    }
 
     if (data.type === "registration") {
       const requestBody = data as {

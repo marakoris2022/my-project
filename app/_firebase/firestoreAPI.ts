@@ -78,6 +78,22 @@ export async function getUserData(userId: string) {
   }
 }
 
+// Получить все документы из коллекции
+export async function getUserDataByName(userName: string) {
+  try {
+    const querySnapshot = await getDocs(collection(db, "users"));
+    const data = querySnapshot.docs.find((doc) => {
+      const docData = doc.data(); // получаем данные документа
+      return docData.playerName === userName;
+    });
+
+    return data ? data.data() : null;
+  } catch (error) {
+    console.error("Error getting documents: ", error);
+    throw error;
+  }
+}
+
 // Обновить документ по userId
 export async function updateUserData(
   userId: string,

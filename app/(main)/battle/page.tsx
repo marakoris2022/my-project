@@ -3,7 +3,10 @@
 import { Avatar, Box, Button, List, ListItem, Typography } from "@mui/material";
 import StaticBackdrop from "@/app/_components/StaticBackdrop";
 import { usePokemonRedirect } from "@/app/_customHooks/usePokemonRedirect";
-import { postRequestToServer } from "@/app/_firebase/clientFirestireApi";
+import {
+  fetchUserData,
+  postRequestToServer,
+} from "@/app/_firebase/clientFirestireApi";
 import { useCallback, useEffect, useState } from "react";
 import { getFormattedTime } from "@/app/_utils/utils";
 import { getPokemonByName } from "@/app/_pokemonApi/pokemonDataApi";
@@ -33,7 +36,7 @@ type BattleRoomsProps = {
 };
 
 export default function BattlePage() {
-  const { loading, fetchedData } = usePokemonRedirect();
+  const { loading, fetchedData, setFetchedData } = usePokemonRedirect();
   const [battleRooms, setBattleRooms] = useState<null | BattleRoomsProps[]>(
     null
   );
@@ -61,6 +64,7 @@ export default function BattlePage() {
         });
 
         setBattleRooms(response.battleRooms); // обновляем battleRooms
+        setFetchedData(await fetchUserData(fetchedData.userId));
       } catch (error) {
         console.error((error as Error).message);
       }
@@ -75,6 +79,7 @@ export default function BattlePage() {
         });
 
         setBattleRooms(response.battleRooms); // обновляем battleRooms
+        setFetchedData(await fetchUserData(fetchedData.userId));
       } catch (error) {
         console.error((error as Error).message);
       }
