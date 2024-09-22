@@ -1,7 +1,13 @@
 // app/api/user/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { getUserData, upsertUserData } from "@/app/_firebase/firestoreAPI";
+import {
+  createBattleRoom,
+  deleteBattleRoom,
+  getBattleRooms,
+  getUserData,
+  upsertUserData,
+} from "@/app/_firebase/firestoreAPI";
 import {
   newUserDefaultParams,
   POKEMON_TRAINING_GROUND_RANGE,
@@ -495,6 +501,138 @@ export async function POST(req: NextRequest) {
         );
 
         return response;
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (data.type === "create-battle") {
+      try {
+        if (userData.fight.isFight) throw new Error("You are Fighting.");
+
+        if (userData.battle.isBattleCreated)
+          throw new Error("Battle already created.");
+
+        if (userData.battle.isInBattleRequest)
+          throw new Error("You are already in battle request.");
+
+        if (userData.battle.isInBattle)
+          throw new Error("You are already in battle.");
+
+        await createBattleRoom(userData.userId, userData);
+
+        await upsertUserData(userId, {
+          battle: {
+            ...userData.battle,
+            isBattleCreated: true,
+          },
+        });
+
+        const battleRooms = await getBattleRooms();
+
+        const response = NextResponse.json(
+          { message: "Room is created.", battleRooms },
+          { status: 200 }
+        );
+
+        return response;
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (data.type === "get-battle-rooms") {
+      try {
+        const respond = await getBattleRooms();
+
+        const battleRooms = respond.map((item) => {
+          const opponentData = item.opponentData
+            ? {
+                level: item.authorData.level,
+                pokemonName: item.authorData.name,
+                stats: item.authorData.stats,
+              }
+            : null;
+
+          const obj = {
+            authorData: {
+              level: item.authorData.level,
+              pokemonName: item.authorData.name,
+              stats: item.authorData.stats,
+            },
+            authorName: item.authorName,
+            opponentData: opponentData,
+            opponentName: item.opponentName,
+            time: item.time,
+          };
+          return obj;
+        });
+
+        const response = NextResponse.json(
+          { message: "Battle rooms.", battleRooms },
+          { status: 200 }
+        );
+
+        return response;
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (data.type === "close-battle-room") {
+      try {
+        if (userData.fight.isFight)
+          throw new Error("You are currently in a fight.");
+
+        if (!userData.battle.isBattleCreated)
+          throw new Error("You don't have an active battle room.");
+
+        if (userData.battle.isInBattleRequest)
+          throw new Error("You already have a pending battle request.");
+
+        if (userData.battle.isInBattle)
+          throw new Error("You are already participating in a battle.");
+
+        const deletedRoomData = await deleteBattleRoom(
+          userData.userId,
+          userData
+        );
+
+        // Из deletedRoomData получить данные оппонента и закрыть его комнату.
+        if (deletedRoomData && deletedRoomData.opponentData) {
+          const opponent = deletedRoomData.opponentData;
+          await upsertUserData(opponent.userId, {
+            ...opponent,
+            battle: {
+              ...opponent.battle,
+              isBattleCreated: false,
+            },
+          });
+        }
+
+        await upsertUserData(userId, {
+          ...userData,
+          battle: {
+            ...userData.battle,
+            isBattleCreated: false,
+          },
+        });
+
+        const battleRooms = await getBattleRooms();
+
+        return NextResponse.json(
+          { message: "Room is closed.", battleRooms },
+          { status: 200 }
+        );
       } catch (error) {
         return NextResponse.json(
           { error: (error as Error).message },

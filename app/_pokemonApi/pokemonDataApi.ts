@@ -70,6 +70,11 @@ export type PokemonProfileProps = PokemonProps & {
     isRegen: boolean;
     endRegen: number;
   };
+  battle: {
+    isInBattle: boolean;
+    isBattleCreated: boolean;
+    isInBattleRequest: boolean;
+  };
 };
 
 const pokemonList = pokemonListFromJSON as PokemonProps[];

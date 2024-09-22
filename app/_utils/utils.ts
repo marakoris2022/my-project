@@ -21,6 +21,17 @@ export function calculateDistance(
   return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 }
 
+export function getFormattedTime(time: number) {
+  console.log(time);
+
+  const fightTime = new Date(time);
+  const hours = String(fightTime.getHours()).padStart(2, "0");
+  const minutes = String(fightTime.getMinutes()).padStart(2, "0");
+  const seconds = String(fightTime.getSeconds()).padStart(2, "0");
+  const formattedTime = `[${hours}:${minutes}:${seconds}]`;
+  return formattedTime;
+}
+
 export function generateFightLog(fightData: FightDataProps) {
   const {
     opponentAttackPlace,
@@ -33,11 +44,8 @@ export function generateFightLog(fightData: FightDataProps) {
   } = fightData;
 
   // Преобразование времени
-  const fightTime = new Date(dateTime);
-  const hours = String(fightTime.getHours()).padStart(2, "0");
-  const minutes = String(fightTime.getMinutes()).padStart(2, "0");
-  const seconds = String(fightTime.getSeconds()).padStart(2, "0");
-  const formattedTime = `[${hours}:${minutes}:${seconds}]`;
+
+  const formattedTime = getFormattedTime(dateTime);
 
   const userAttackResult =
     userAttackDmg > 0

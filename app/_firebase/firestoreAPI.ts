@@ -58,15 +58,6 @@ export async function addUserData(userId: string, data: Record<string, any>) {
   }
 }
 
-// type DynamicData = {
-//   [key: string]: string; // динамические ключи со строковыми значениями
-// };
-
-// type UserData = DynamicData & {
-//   id: string; // обязательное поле id
-//   userId: string; // обязательное поле userId
-// };
-
 // Получить все документы из коллекции
 export async function getUserData(userId: string) {
   try {
@@ -140,6 +131,81 @@ export async function deleteUserData(userId: string) {
     await deleteDoc(userDocRef);
   } catch (error) {
     console.error("Error deleting user data: ", error);
+    throw error;
+  }
+}
+
+// Добавить документ в коллекцию
+export async function createBattleRoom(
+  userId: string,
+  userData: PokemonProfileProps
+) {
+  try {
+    const docRef = await addDoc(collection(db, "battle-room"), {
+      userId,
+      authorName: userData.playerName,
+      authorData: userData,
+      opponentName: null,
+      opponentData: null,
+      time: Date.now(),
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error adding document: ", error);
+    throw error;
+  }
+}
+
+// Получить данные комнат
+export async function getBattleRooms() {
+  try {
+    const querySnapshot = await getDocs(collection(db, "battle-room"));
+
+    const docsList = querySnapshot.docs.map((doc) => doc.data()); // получаем данные документа
+
+    return docsList;
+  } catch (error) {
+    console.error("Error adding document: ", error);
+    throw error;
+  }
+}
+
+// Удалить документ из коллекции "battle-room"
+export async function deleteBattleRoom(
+  userId: string,
+  userData: PokemonProfileProps
+) {
+  try {
+    // Ссылка на коллекцию "battle-room"
+    const battleRoomCollection = collection(db, "battle-room");
+
+    // Запрос для поиска документа с соответствующим userId
+    const battleRoomQuery = query(
+      battleRoomCollection,
+      where("userId", "==", userData.userId)
+    );
+
+    // Получить результат запроса
+    const querySnapshot = await getDocs(battleRoomQuery);
+
+    if (querySnapshot.empty) {
+      return null; // Если документы не найдены, вернуть null
+    }
+
+    // Поскольку userId уникален, берем первый найденный документ
+    const userDoc = querySnapshot.docs[0];
+    const roomData = userDoc.data(); // Данные документа
+
+    // Ссылка на документ для удаления
+    const userDocRef = doc(db, "battle-room", userDoc.id);
+
+    // Удалить документ
+    await deleteDoc(userDocRef);
+
+    // Вернуть данные удаленного документа
+    return roomData;
+  } catch (error) {
+    console.error("Ошибка при удалении документа: ", error);
     throw error;
   }
 }
