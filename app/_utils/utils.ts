@@ -22,8 +22,6 @@ export function calculateDistance(
 }
 
 export function getFormattedTime(time: number) {
-  console.log(time);
-
   const fightTime = new Date(time);
   const hours = String(fightTime.getHours()).padStart(2, "0");
   const minutes = String(fightTime.getMinutes()).padStart(2, "0");

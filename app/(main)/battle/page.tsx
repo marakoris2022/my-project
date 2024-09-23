@@ -40,6 +40,7 @@ export default function BattlePage() {
   const [battleRooms, setBattleRooms] = useState<null | BattleRoomsProps[]>(
     null
   );
+  const [updateTime, setUpdateTimer] = useState(15);
 
   const handleGetBattleRooms = useCallback(async () => {
     if (fetchedData) {
@@ -47,9 +48,8 @@ export default function BattlePage() {
         const response = await postRequestToServer(fetchedData.userId, {
           type: "get-battle-rooms",
         });
-        console.log(response);
 
-        setBattleRooms(response.battleRooms); // обновляем battleRooms
+        setBattleRooms(response.battleRooms);
       } catch (error) {
         console.error((error as Error).message);
       }
@@ -86,9 +86,33 @@ export default function BattlePage() {
     }
   }
 
+  function handleJoinBattleRoom() {}
+
   useEffect(() => {
     (async () => await handleGetBattleRooms())();
   }, [handleGetBattleRooms]);
+
+  useEffect(() => {
+    let timerId: NodeJS.Timeout | null = null;
+
+    function runTimer() {
+      if (updateTime > 0) {
+        timerId = setTimeout(() => {
+          setUpdateTimer((time) => time - 1);
+          runTimer();
+        }, 1000);
+      } else {
+        handleGetBattleRooms();
+        setUpdateTimer(15);
+      }
+    }
+
+    runTimer();
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [handleGetBattleRooms, updateTime]);
 
   if (loading || fetchedData === undefined) {
     return <StaticBackdrop />;
@@ -135,7 +159,7 @@ export default function BattlePage() {
           </Button>
         )}
         <Button endIcon={<SyncIcon />} onClick={handleGetBattleRooms}>
-          Get Battle Rooms
+          Get Battle Rooms {updateTime}s.
         </Button>
       </Box>
       {battleRooms &&
@@ -198,6 +222,15 @@ export default function BattlePage() {
                   SPD: {room.authorData.stats.speed}
                 </ListItem>
               </List>
+              {Boolean(room.authorName !== fetchedData.playerName) && (
+                <Button
+                  onClick={handleJoinBattleRoom}
+                  color="warning"
+                  variant="outlined"
+                >
+                  Join
+                </Button>
+              )}
             </Box>
           );
         })}

@@ -630,7 +630,7 @@ export async function POST(req: NextRequest) {
             ...opponent,
             battle: {
               ...opponent.battle,
-              isBattleCreated: false,
+              isInBattleRequest: false,
             },
           });
         }
