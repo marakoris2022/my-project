@@ -572,9 +572,9 @@ export async function POST(req: NextRequest) {
         const battleRooms = respond.map((item) => {
           const opponentData = item.opponentData
             ? {
-                level: item.authorData.level,
-                pokemonName: item.authorData.name,
-                stats: item.authorData.stats,
+                level: item.opponentData.level,
+                pokemonName: item.opponentData.name,
+                stats: item.opponentData.stats,
               }
             : null;
 
