@@ -21,6 +21,11 @@ export const newUserDefaultParams = {
   fight: {
     isFight: false,
   },
+  battle: {
+    isInBattle: false,
+    isBattleCreated: false,
+    isInBattleRequest: false,
+  },
   caughtPokes: [
     "sunkern",
     "blipbug",

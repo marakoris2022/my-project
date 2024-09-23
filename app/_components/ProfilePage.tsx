@@ -442,6 +442,9 @@ function PokemonProfilePage({
               variant="outlined"
               color="secondary"
               sx={{ borderRadius: 4 }}
+              onClick={() => {
+                router.push("/battle");
+              }}
             >
               Battle
             </Button>

@@ -54,8 +54,7 @@ export default function ProfilePage() {
 
       router.push("/training/ground");
     } catch (error) {
-      // console.error((error as Error).message);
-      console.log("error", error);
+      console.error("error", error);
     }
   }
 

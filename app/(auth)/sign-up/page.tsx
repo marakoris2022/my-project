@@ -39,6 +39,16 @@ export default function SignUp() {
       if (data.password !== data.confirmPassword) {
         throw new Error("Passwords do not match");
       }
+
+      // Проверяем имя пользователя в DB
+      const isName = await postRequestToServer("null", {
+        type: "check-user-name",
+        userName: data.name,
+      });
+
+      if (isName.message === "User name busy.")
+        throw new Error("This name is already used.");
+
       // Создание пользователя
       const userCredential = await createUserWithEmailAndPassword(
         auth,
