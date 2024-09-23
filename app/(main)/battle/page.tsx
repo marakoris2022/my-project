@@ -19,7 +19,7 @@ import {
   fetchUserData,
   postRequestToServer,
 } from "@/app/_firebase/clientFirestireApi";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getFormattedTime } from "@/app/_utils/utils";
 import { getPokemonByName } from "@/app/_pokemonApi/pokemonDataApi";
 import CloseIcon from "@mui/icons-material/Close";
@@ -69,7 +69,7 @@ export default function BattlePage() {
   );
   const [updateTime, setUpdateTimer] = useState(60);
 
-  const handleGetBattleRooms = useCallback(async () => {
+  const handleGetBattleRooms = async () => {
     if (fetchedData) {
       try {
         const response = await postRequestToServer(fetchedData.userId, {
@@ -82,17 +82,18 @@ export default function BattlePage() {
         console.error((error as Error).message);
       }
     }
-  }, []);
+  };
 
   async function handleCloseRequest() {
     if (fetchedData) {
       try {
-        const response = await postRequestToServer(fetchedData.userId, {
+        await postRequestToServer(fetchedData.userId, {
           type: "close-battle-room",
         });
 
-        setBattleRooms(response.battleRooms); // обновляем battleRooms
-        setFetchedData(await fetchUserData(fetchedData.userId));
+        // setBattleRooms(response.battleRooms); // обновляем battleRooms
+        // setFetchedData(await fetchUserData(fetchedData.userId));
+        await handleGetBattleRooms();
       } catch (error) {
         console.error((error as Error).message);
       }
@@ -102,12 +103,13 @@ export default function BattlePage() {
   async function handleCreateBattle() {
     if (fetchedData) {
       try {
-        const response = await postRequestToServer(fetchedData.userId, {
+        await postRequestToServer(fetchedData.userId, {
           type: "create-battle",
         });
 
-        setBattleRooms(response.battleRooms); // обновляем battleRooms
-        setFetchedData(await fetchUserData(fetchedData.userId));
+        // setBattleRooms(response.battleRooms); // обновляем battleRooms
+        // setFetchedData(await fetchUserData(fetchedData.userId));
+        await handleGetBattleRooms();
       } catch (error) {
         console.error((error as Error).message);
       }
@@ -117,14 +119,15 @@ export default function BattlePage() {
   async function handleJoinBattleRoom(roomAuthorName: string) {
     if (fetchedData) {
       try {
-        const response = await postRequestToServer(fetchedData.userId, {
+        await postRequestToServer(fetchedData.userId, {
           type: "join-battle-room",
           roomOwnerName: roomAuthorName,
           opponentData: fetchedData,
         });
 
-        setBattleRooms(response.battleRooms); // обновляем battleRooms
-        setFetchedData(await fetchUserData(fetchedData.userId));
+        // setBattleRooms(response.battleRooms); // обновляем battleRooms
+        // setFetchedData(await fetchUserData(fetchedData.userId));
+        await handleGetBattleRooms();
       } catch (error) {
         console.error((error as Error).message);
       }
@@ -134,13 +137,14 @@ export default function BattlePage() {
   async function handleLeaveRequest() {
     if (fetchedData) {
       try {
-        const response = await postRequestToServer(fetchedData.userId, {
+        await postRequestToServer(fetchedData.userId, {
           type: "leave-battle-room",
           opponentData: fetchedData,
         });
 
-        setBattleRooms(response.battleRooms); // обновляем battleRooms
-        setFetchedData(await fetchUserData(fetchedData.userId));
+        // setBattleRooms(response.battleRooms); // обновляем battleRooms
+        // setFetchedData(await fetchUserData(fetchedData.userId));
+        await handleGetBattleRooms();
       } catch (error) {
         console.error((error as Error).message);
       }
@@ -148,20 +152,28 @@ export default function BattlePage() {
   }
 
   useEffect(() => {
-    (async () => await handleGetBattleRooms())();
-  }, [handleGetBattleRooms]);
+    (async () => {
+      if (fetchedData) {
+        const response = await postRequestToServer(fetchedData.userId, {
+          type: "get-battle-rooms",
+        });
+
+        setBattleRooms(response.battleRooms);
+      }
+    })();
+  }, [fetchedData]);
 
   useEffect(() => {
     let timerId: NodeJS.Timeout | null = null;
 
-    function runTimer() {
+    async function runTimer() {
       if (updateTime > 0) {
         timerId = setTimeout(() => {
           setUpdateTimer((time) => time - 1);
           runTimer();
         }, 1000);
       } else {
-        handleGetBattleRooms();
+        await handleGetBattleRooms();
         setUpdateTimer(60);
       }
     }
