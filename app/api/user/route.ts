@@ -7,6 +7,7 @@ import {
   getBattleRooms,
   getUserData,
   getUserDataByName,
+  updateBattleRoom,
   upsertUserData,
 } from "@/app/_firebase/firestoreAPI";
 import {
@@ -16,6 +17,7 @@ import {
 import {
   getPokemonByName,
   getPokemonListByExpRange,
+  PokemonProfileProps,
   PokemonProps,
 } from "@/app/_pokemonApi/pokemonDataApi";
 import { getRandomInRange } from "@/app/_utils/utils";
@@ -647,6 +649,121 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(
           { message: "Room is closed.", battleRooms },
+          { status: 200 }
+        );
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (data.type === "join-battle-room") {
+      try {
+        const request = data as {
+          type: string;
+          roomOwnerName: string;
+          opponentData: PokemonProfileProps;
+        };
+
+        if (userData.fight.isFight)
+          throw new Error("You are currently in a fight.");
+
+        if (userData.battle.isBattleCreated)
+          throw new Error("You already have a room.");
+
+        if (userData.battle.isInBattleRequest)
+          throw new Error("You already have a pending battle request.");
+
+        if (userData.battle.isInBattle)
+          throw new Error("You are already participating in a battle.");
+
+        const allBattleRooms = await getBattleRooms();
+        const battleRoomData = allBattleRooms.find(
+          (room) => room.authorName === request.roomOwnerName
+        );
+
+        if (!battleRoomData) throw new Error("Cant find battle room.");
+
+        if (battleRoomData!.opponentName)
+          throw new Error("Someone already in request.");
+
+        await updateBattleRoom(request.roomOwnerName, {
+          ...JSON.parse(JSON.stringify(battleRoomData)),
+          opponentData: request.opponentData,
+          opponentName: request.opponentData.playerName,
+        });
+
+        await upsertUserData(userId, {
+          ...userData,
+          battle: {
+            ...userData.battle,
+            isInBattleRequest: true,
+          },
+        });
+
+        const battleRooms = await getBattleRooms();
+
+        return NextResponse.json(
+          { message: "Room is closed.", battleRooms },
+          { status: 200 }
+        );
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (data.type === "leave-battle-room") {
+      try {
+        const request = data as {
+          type: string;
+          opponentData: PokemonProfileProps;
+        };
+
+        if (userData.fight.isFight)
+          throw new Error("You are currently in a fight.");
+
+        if (userData.battle.isBattleCreated)
+          throw new Error("You already have a room.");
+
+        if (!userData.battle.isInBattleRequest)
+          throw new Error("You must to be in battle room.");
+
+        if (userData.battle.isInBattle)
+          throw new Error("You are already participating in a battle.");
+
+        const allBattleRooms = await getBattleRooms();
+        const battleRoomData = allBattleRooms.find(
+          (room) => room.opponentName === request.opponentData.playerName
+        );
+
+        if (!battleRoomData) throw new Error("Cant find battle room.");
+
+        if (!battleRoomData.opponentName)
+          throw new Error("There is no opponent in the battle room.");
+
+        await updateBattleRoom(battleRoomData.authorName, {
+          ...JSON.parse(JSON.stringify(battleRoomData)),
+          opponentData: null,
+          opponentName: null,
+        });
+
+        await upsertUserData(userId, {
+          ...userData,
+          battle: {
+            ...userData.battle,
+            isInBattleRequest: false,
+          },
+        });
+
+        const battleRooms = await getBattleRooms();
+
+        return NextResponse.json(
+          { message: "You levae the room.", battleRooms },
           { status: 200 }
         );
       } catch (error) {

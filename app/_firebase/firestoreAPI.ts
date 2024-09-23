@@ -225,3 +225,42 @@ export async function deleteBattleRoom(
     throw error;
   }
 }
+
+// Обновить документ battle-room по имени автора (authorName)
+export async function updateBattleRoom(
+  authorName: string,
+  updates: Record<string, any>
+) {
+  try {
+    // Запрос для поиска документа с нужным authorName
+    const battleRoomCollection = collection(db, "battle-room");
+    const battleRoomQuery = query(
+      battleRoomCollection,
+      where("authorName", "==", authorName)
+    );
+
+    // Получаем документы, соответствующие запросу
+    const querySnapshot = await getDocs(battleRoomQuery);
+
+    // Проверяем, если документ найден
+    if (querySnapshot.empty) {
+      console.log("Battle room not found.");
+      return;
+    }
+
+    // Предполагаем, что authorName уникален, поэтому берем первый найденный документ
+    const battleRoomDoc = querySnapshot.docs[0];
+    const battleRoomDocRef = doc(db, "battle-room", battleRoomDoc.id);
+
+    // Обновляем документ с новыми данными
+    await updateDoc(battleRoomDocRef, {
+      ...updates,
+      time: Date.now(), // Обновляем время последнего изменения
+    });
+
+    console.log("Battle room updated successfully.");
+  } catch (error) {
+    console.error("Error updating battle room: ", error);
+    throw error;
+  }
+}
