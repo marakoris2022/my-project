@@ -82,7 +82,7 @@ export default function BattlePage() {
         console.error((error as Error).message);
       }
     }
-  }, [setFetchedData]);
+  }, []);
 
   async function handleCloseRequest() {
     if (fetchedData) {
@@ -212,13 +212,15 @@ export default function BattlePage() {
         {fetchedData.battle.isBattleCreated &&
           battleRooms?.find((room) => room.authorName == fetchedData.playerName)
             ?.opponentName && (
-            <Button
-              color="success"
-              endIcon={<LocalFireDepartmentOutlinedIcon />}
-              onClick={handleCreateBattle}
-            >
-              Start Battle
-            </Button>
+            <Tooltip title="In Progress...">
+              <Button
+                color="success"
+                endIcon={<LocalFireDepartmentOutlinedIcon />}
+                onClick={() => {}}
+              >
+                Start Battle
+              </Button>
+            </Tooltip>
           )}
         {fetchedData.battle.isBattleCreated && (
           <Button
