@@ -87,7 +87,7 @@ export async function getUserDataByName(userName: string) {
       return docData.playerName === userName;
     });
 
-    return data ? data.data() : null;
+    return data ? (data.data() as PokemonProfileProps) : null;
   } catch (error) {
     console.error("Error getting documents: ", error);
     throw error;
