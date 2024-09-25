@@ -29,6 +29,7 @@ import PermDeviceInformationIcon from "@mui/icons-material/PermDeviceInformation
 import MeetingRoomOutlinedIcon from "@mui/icons-material/MeetingRoomOutlined";
 import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
 import { BattleRoomsProps } from "@/app/_interface/interface";
+import { useRouter } from "next/navigation";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -44,10 +45,11 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 
 export default function BattlePage() {
   const { loading, fetchedData, setFetchedData } = usePokemonRedirect();
+  const router = useRouter();
   const [battleRooms, setBattleRooms] = useState<null | BattleRoomsProps[]>(
     null
   );
-  const [updateTime, setUpdateTimer] = useState(60);
+  const [updateTime, setUpdateTimer] = useState(10);
 
   const handleGetBattleRooms = async () => {
     if (fetchedData) {
@@ -139,7 +141,7 @@ export default function BattlePage() {
           authorUID: fetchedData.userId,
         });
 
-        // router.push('/battle/fight');
+        router.push("/battle/fight");
       } catch (error) {
         console.error((error as Error).message);
       }
@@ -169,7 +171,7 @@ export default function BattlePage() {
         }, 1000);
       } else {
         await handleGetBattleRooms();
-        setUpdateTimer(60);
+        setUpdateTimer(10);
       }
     }
 

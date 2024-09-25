@@ -591,6 +591,8 @@ export async function POST(req: NextRequest) {
             opponentName: item.opponentName,
             time: item.time,
             battleMoves: item.battleMoves,
+            timeFightEnds: item.timeFightEnds,
+            timeFightStarts: item.timeFightStarts,
           };
           return obj;
         });
@@ -801,40 +803,42 @@ export async function POST(req: NextRequest) {
         if (!battleRoomData.opponentName)
           throw new Error("There is no opponent in the battle room.");
 
-        await updateBattleRoom(battleRoomData.authorName, {
-          ...JSON.parse(JSON.stringify(battleRoomData)),
-          timeFightStarts: Date.now(),
-          battleMoves: [
-            {
-              authorMove: null,
-              opponentMove: null,
-              time: Date.now(),
-              endTime: Date.now() + 1000 + 30,
-            },
-          ],
-        });
-
-        await upsertUserData(battleRoomData.authorData.userId, {
-          ...userData,
-          battle: {
-            ...userData.battle,
-            isInBattle: true,
-          },
-        });
-
         const opponent = await getUserDataByName(
           battleRoomData.opponentData.playerName
         );
 
         if (!opponent) throw new Error("Cant find opponent");
 
-        await upsertUserData(opponent.userId, {
-          ...opponent,
-          battle: {
-            ...opponent.battle,
-            isInBattle: true,
-          },
-        });
+        await Promise.all([
+          await updateBattleRoom(battleRoomData.authorName, {
+            ...JSON.parse(JSON.stringify(battleRoomData)),
+            timeFightStarts: Date.now(),
+            battleMoves: [
+              {
+                authorMove: null,
+                opponentMove: null,
+                time: Date.now(),
+                endTime: Date.now() + 1000 * 120,
+              },
+            ],
+          }),
+
+          await upsertUserData(battleRoomData.authorData.userId, {
+            ...userData,
+            battle: {
+              ...userData.battle,
+              isInBattle: true,
+            },
+          }),
+
+          await upsertUserData(opponent.userId, {
+            ...opponent,
+            battle: {
+              ...opponent.battle,
+              isInBattle: true,
+            },
+          }),
+        ]);
 
         return NextResponse.json(
           { message: "Fight is started." },
@@ -848,12 +852,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let isMove = false;
     if (data.type === "battle-fight-move") {
       const request = data as {
         type: string;
         attack: "head" | "body" | "hands" | "lags";
         block: "head" | "body" | "hands" | "lags";
       };
+
+      if (isMove) throw new Error("Server is busy!");
+      isMove = true;
 
       // const moveArr = ["head", "body", "hands", "lags"];
 
@@ -870,19 +878,26 @@ export async function POST(req: NextRequest) {
 
         if (!room) throw new Error("Cant find room!");
 
+        if (room.timeFightEnds) throw new Error("Fight is end!");
+
         const isAuthor = room.authorName === userData.playerName;
 
         if (
-          isAuthor &&
-          room.battleMoves[room.battleMoves.length - 1].authorMove?.attack
-        )
-          throw new Error("Move already done!");
+          !room.battleMoves[room.battleMoves.length - 1].authorMove ||
+          !room.battleMoves[room.battleMoves.length - 1].opponentMove
+        ) {
+          if (
+            isAuthor &&
+            room.battleMoves[room.battleMoves.length - 1].authorMove?.attack
+          )
+            throw new Error("Move already done!");
 
-        if (
-          !isAuthor &&
-          room.battleMoves[room.battleMoves.length - 1].opponentMove?.attack
-        )
-          throw new Error("Move already done!");
+          if (
+            !isAuthor &&
+            room.battleMoves[room.battleMoves.length - 1].opponentMove?.attack
+          )
+            throw new Error("Move already done!");
+        }
 
         const battleMoves = [...room.battleMoves];
 
@@ -975,36 +990,77 @@ export async function POST(req: NextRequest) {
 
         if (authorAttack === opponentBlock) userAttackDmg = 0;
         newCurrentHPOpponent = newCurrentHPOpponent - userAttackDmg;
+        if (newCurrentHPOpponent < 1) newCurrentHPOpponent = 0;
 
         if (authorBLock === opponentAttack) opponentAttackDmg = 0;
         newCurrentHPUser = newCurrentHPUser - opponentAttackDmg;
+        if (newCurrentHPUser < 1) newCurrentHPUser = 0;
 
         const authorData = await getUserDataByName(room!.authorName);
         const opponentData = await getUserDataByName(room!.opponentName);
 
-        if (newCurrentHPOpponent > 0 && newCurrentHPUser > 0) {
+        battleMoves.push({
+          prevAuthHitDmg: userAttackDmg,
+          prevAuthHitPart: authorAttack,
+          prevOppHitDmg: opponentAttackDmg,
+          prevOppHitPart: opponentAttack,
+          authorMove: null,
+          opponentMove: null,
+          time: Date.now(),
+          endTime: Date.now() + 1000 * 30,
+        });
+
+        if (newCurrentHPOpponent < 1 || newCurrentHPUser < 1) {
+          await Promise.all([
+            await upsertUserData(authorData!.userId, {
+              ...authorData,
+              currentHP: newCurrentHPUser,
+              battle: {
+                ...authorData?.battle,
+                isBattleOver: true,
+              },
+            }),
+
+            await upsertUserData(opponentData!.userId, {
+              ...opponentData,
+              currentHP: newCurrentHPOpponent,
+              battle: {
+                ...opponentData?.battle,
+                isBattleOver: true,
+              },
+            }),
+
+            await updateBattleRoom(room!.authorName, {
+              ...room,
+              authorData: {
+                ...authorData,
+                currentHP: newCurrentHPUser,
+              },
+              opponentData: {
+                ...opponentData,
+                currentHP: newCurrentHPOpponent,
+              },
+              battleMoves: battleMoves,
+              timeFightEnds: Date.now(),
+            }),
+          ]);
+
+          return NextResponse.json(
+            { message: "Move is Done." },
+            { status: 200 }
+          );
+        }
+
+        await Promise.all([
           await upsertUserData(authorData!.userId, {
             ...authorData,
             currentHP: newCurrentHPUser,
-          });
+          }),
 
           await upsertUserData(opponentData!.userId, {
             ...opponentData,
             currentHP: newCurrentHPOpponent,
-          });
-
-          const battleMoves = [...room!.battleMoves];
-
-          battleMoves.push({
-            prevAuthHitDmg: userAttackDmg,
-            prevAuthHitPart: authorAttack,
-            prevOppHitDmg: opponentAttackDmg,
-            prevOppHitPart: opponentAttack,
-            authorMove: null,
-            opponentMove: null,
-            time: Date.now(),
-            endTime: Date.now() + 1000 * 30,
-          });
+          }),
 
           await updateBattleRoom(room!.authorName, {
             ...room,
@@ -1017,20 +1073,17 @@ export async function POST(req: NextRequest) {
               currentHP: newCurrentHPOpponent,
             },
             battleMoves: battleMoves,
-          });
+          }),
+        ]);
 
-          return NextResponse.json(
-            { message: "Move is Done." },
-            { status: 200 }
-          );
-        }
-
-        return NextResponse.json({ message: "+" }, { status: 200 });
+        return NextResponse.json({ message: "Move done+" }, { status: 200 });
       } catch (error) {
         return NextResponse.json(
           { error: (error as Error).message },
           { status: 500 }
         );
+      } finally {
+        isMove = false;
       }
     }
 

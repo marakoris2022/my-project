@@ -30,8 +30,10 @@ import {
   BattleRoomsUserProps,
 } from "@/app/_interface/interface";
 import { getPokemonByName } from "@/app/_pokemonApi/pokemonDataApi";
+import { useRouter } from "next/navigation";
 
 export default function FightPage() {
+  const router = useRouter();
   const { loading, fetchedData } = usePokemonRedirect();
   const [opponentData, setOpponentData] = useState<null | BattleRoomsUserProps>(
     null
@@ -104,12 +106,19 @@ export default function FightPage() {
       } catch (error) {
         setMoveLoading(false);
         console.error((error as Error).message);
+      } finally {
+        if (roomData && roomData?.timeFightEnds) {
+          router.push("/battle/fight/end");
+        }
       }
     }
   };
 
   async function handleMoveAction() {
     try {
+      if (roomData?.timeFightEnds) {
+        router.push("/battle/fight/end");
+      }
       setMoveLoading(true);
       await postRequestToServer(fetchedData!.userId, {
         type: "battle-fight-move",
@@ -120,10 +129,11 @@ export default function FightPage() {
       const move = ["head", "body", "hands", "legs"];
       setAttack(move[getRandomInRange(0, 3)]);
       setBlock(move[getRandomInRange(0, 3)]);
-      await handleGetBattleRoom();
     } catch (error) {
       setMoveLoading(false);
       console.error((error as Error).message);
+    } finally {
+      await handleGetBattleRoom();
     }
   }
 

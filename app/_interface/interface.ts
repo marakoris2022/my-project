@@ -73,5 +73,6 @@ export type BattleRoomsProps = {
   opponentName: string;
   time: number;
   timeFightStarts: number;
+  timeFightEnds: null | number;
   battleMoves: BattleMove[];
 };

@@ -164,6 +164,7 @@ export async function createBattleRoom(
       opponentName: null,
       opponentData: null,
       time: Date.now(),
+      timeFightEnds: null,
     });
     return docRef.id;
   } catch (error) {

@@ -29,7 +29,22 @@ export const usePokemonRedirect = () => {
   useEffect(() => {
     if (
       fetchedData &&
+      Boolean(!fetchedData.battle.isBattleOver) &&
+      pathname === "/battle/fight/end"
+    ) {
+      router.push("/profile");
+    }
+    if (
+      fetchedData &&
+      Boolean(fetchedData.battle.isBattleOver) &&
+      pathname !== "/battle/fight/end"
+    ) {
+      router.push("/battle/fight/end");
+    }
+    if (
+      fetchedData &&
       Boolean(fetchedData.battle.isInBattle) &&
+      Boolean(!fetchedData.battle.isBattleOver) &&
       pathname !== "/battle/fight"
     ) {
       router.push("/battle/fight");
