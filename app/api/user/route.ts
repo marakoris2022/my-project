@@ -1003,7 +1003,7 @@ export async function POST(req: NextRequest) {
             authorMove: null,
             opponentMove: null,
             time: Date.now(),
-            endTime: Date.now() + 1000 + 30,
+            endTime: Date.now() + 1000 * 30,
           });
 
           await updateBattleRoom(room!.authorName, {

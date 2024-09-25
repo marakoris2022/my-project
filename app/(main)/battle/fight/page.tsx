@@ -43,10 +43,10 @@ export default function FightPage() {
   const [opponentHpPercentage, setOpponentHpPercentage] = useState(100);
   const [isMoveDone, setIsMoveDone] = useState(false);
   const [moveLoading, setMoveLoading] = useState(false);
+  const [timer, setTimer] = useState(999);
 
   const [attack, setAttack] = useState("head");
   const [block, setBlock] = useState("head");
-  const [log, setLog] = useState<string[]>([]);
 
   const handleReset = () => {
     setAttack("head");
@@ -54,8 +54,6 @@ export default function FightPage() {
   };
 
   function triggerIsMoveDone(room: BattleRoomsProps) {
-    console.log("room", room);
-
     if (fetchedData && fetchedData.battle.isBattleCreated) {
       if (room.battleMoves[room.battleMoves.length - 1].authorMove) {
         setIsMoveDone(true);
@@ -128,6 +126,36 @@ export default function FightPage() {
       console.error((error as Error).message);
     }
   }
+
+  function calcRoundTimer() {
+    let calc = Math.round(
+      (roomData!.battleMoves[roomData!.battleMoves.length - 1].endTime -
+        Date.now()) /
+        1000
+    );
+
+    if (calc < 0) calc = 0;
+    setTimer(calc);
+  }
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
+    function timerFunction() {
+      timeout = setTimeout(async () => {
+        calcRoundTimer();
+        if (timer > 0) {
+          timerFunction();
+        } else {
+          await handleMoveAction();
+        }
+      }, 1000);
+    }
+    timerFunction();
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [calcRoundTimer, timer]);
 
   useEffect(() => {
     (async () => {
@@ -221,9 +249,17 @@ export default function FightPage() {
                 padding: 2,
               }}
             >
-              {/* const [attack, setAttack] = useState("head"); // состояние для
-              Attack const [block, setBlock] = useState("head"); // состояние
-              для Block return ( */}
+              <Box>
+                {Boolean(roomData) && (
+                  <>
+                    <Typography>
+                      Round: {roomData?.battleMoves.length}. Round ends in:{" "}
+                      {timer}
+                      s.
+                    </Typography>
+                  </>
+                )}
+              </Box>
               <Box sx={{ display: "flex", flexDirection: "row", gap: "15px" }}>
                 {/* Форма атаки */}
                 <FormControl sx={{ textAlign: "start" }}>
@@ -427,9 +463,12 @@ export default function FightPage() {
                       <Typography key={`log_${i}`}>
                         {roomData.authorName} hit {roomData.opponentName} to the{" "}
                         {battleMove.prevAuthHitPart} for the{" "}
-                        {battleMove.prevAuthHitDmg}. {roomData.opponentName} hit{" "}
-                        {roomData.authorName} to the {battleMove.prevOppHitPart}{" "}
-                        for the {battleMove.prevOppHitDmg}.
+                        {battleMove.prevAuthHitDmg}
+                        {Boolean(battleMove.prevAuthHitDmg === 0) && " (block)"}
+                        . {roomData.opponentName} hit {roomData.authorName} to
+                        the {battleMove.prevOppHitPart} for the{" "}
+                        {battleMove.prevOppHitDmg}
+                        {Boolean(battleMove.prevOppHitDmg === 0) && " (block)"}.
                       </Typography>
                     ) : (
                       <Typography>Battle is started!</Typography>
