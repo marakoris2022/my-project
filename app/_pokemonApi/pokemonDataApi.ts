@@ -74,6 +74,7 @@ export type PokemonProfileProps = PokemonProps & {
     isInBattle: boolean;
     isBattleCreated: boolean;
     isInBattleRequest: boolean;
+    isBattleOver: boolean;
   };
 };
 

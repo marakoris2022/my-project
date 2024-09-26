@@ -28,27 +28,8 @@ import AddIcon from "@mui/icons-material/Add";
 import PermDeviceInformationIcon from "@mui/icons-material/PermDeviceInformation";
 import MeetingRoomOutlinedIcon from "@mui/icons-material/MeetingRoomOutlined";
 import LocalFireDepartmentOutlinedIcon from "@mui/icons-material/LocalFireDepartmentOutlined";
-
-type BattleRoomsUserProps = {
-  level: number;
-  pokemonName: string;
-  stats: {
-    attack: number;
-    defense: number;
-    hp: number;
-    "special-attack": number;
-    "special-defense": number;
-    speed: number;
-  };
-};
-
-type BattleRoomsProps = {
-  authorData: BattleRoomsUserProps;
-  authorName: string;
-  opponentData: BattleRoomsUserProps;
-  opponentName: string;
-  time: number;
-};
+import { BattleRoomsProps } from "@/app/_interface/interface";
+import { useRouter } from "next/navigation";
 
 const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
   <Tooltip {...props} classes={{ popper: className }} />
@@ -64,10 +45,11 @@ const HtmlTooltip = styled(({ className, ...props }: TooltipProps) => (
 
 export default function BattlePage() {
   const { loading, fetchedData, setFetchedData } = usePokemonRedirect();
+  const router = useRouter();
   const [battleRooms, setBattleRooms] = useState<null | BattleRoomsProps[]>(
     null
   );
-  const [updateTime, setUpdateTimer] = useState(60);
+  const [updateTime, setUpdateTimer] = useState(10);
 
   const handleGetBattleRooms = async () => {
     if (fetchedData) {
@@ -151,6 +133,21 @@ export default function BattlePage() {
     }
   }
 
+  async function handleStartBattleFight() {
+    if (fetchedData) {
+      try {
+        await postRequestToServer(fetchedData.userId, {
+          type: "start-battle-fight",
+          authorUID: fetchedData.userId,
+        });
+
+        router.push("/battle/fight");
+      } catch (error) {
+        console.error((error as Error).message);
+      }
+    }
+  }
+
   useEffect(() => {
     (async () => {
       if (fetchedData) {
@@ -174,7 +171,7 @@ export default function BattlePage() {
         }, 1000);
       } else {
         await handleGetBattleRooms();
-        setUpdateTimer(60);
+        setUpdateTimer(10);
       }
     }
 
@@ -228,7 +225,7 @@ export default function BattlePage() {
               <Button
                 color="success"
                 endIcon={<LocalFireDepartmentOutlinedIcon />}
-                onClick={() => {}}
+                onClick={handleStartBattleFight}
               >
                 Start Battle
               </Button>

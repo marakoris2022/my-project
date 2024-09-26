@@ -572,9 +572,10 @@ export async function POST(req: NextRequest) {
         const battleRooms = respond.map((item) => {
           const opponentData = item.opponentData
             ? {
-                level: item.authorData.level,
-                pokemonName: item.authorData.name,
-                stats: item.authorData.stats,
+                level: item.opponentData.level,
+                pokemonName: item.opponentData.name,
+                stats: item.opponentData.stats,
+                currentHP: item.opponentData.currentHP,
               }
             : null;
 
@@ -583,11 +584,15 @@ export async function POST(req: NextRequest) {
               level: item.authorData.level,
               pokemonName: item.authorData.name,
               stats: item.authorData.stats,
+              currentHP: item.authorData.currentHP,
             },
             authorName: item.authorName,
             opponentData: opponentData,
             opponentName: item.opponentName,
             time: item.time,
+            battleMoves: item.battleMoves,
+            timeFightEnds: item.timeFightEnds,
+            timeFightStarts: item.timeFightStarts,
           };
           return obj;
         });
@@ -763,9 +768,426 @@ export async function POST(req: NextRequest) {
         const battleRooms = await getBattleRooms();
 
         return NextResponse.json(
-          { message: "You levae the room.", battleRooms },
+          { message: "You leave the room.", battleRooms },
           { status: 200 }
         );
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
+    if (data.type === "start-battle-fight") {
+      try {
+        if (userData.fight.isFight)
+          throw new Error("You are currently in a fight.");
+
+        if (
+          !userData.battle.isInBattleRequest &&
+          !userData.battle.isBattleCreated
+        )
+          throw new Error("You need create or join battle room.");
+
+        if (userData.battle.isInBattle)
+          throw new Error("You are already participating in a battle.");
+
+        const allBattleRooms = await getBattleRooms();
+        const battleRoomData = allBattleRooms.find(
+          (room) => room.authorName === userData!.playerName
+        );
+
+        if (!battleRoomData) throw new Error("Cant find battle room.");
+
+        if (!battleRoomData.opponentName)
+          throw new Error("There is no opponent in the battle room.");
+
+        const opponent = await getUserDataByName(
+          battleRoomData.opponentData.playerName
+        );
+
+        if (!opponent) throw new Error("Cant find opponent");
+
+        await Promise.all([
+          await updateBattleRoom(battleRoomData.authorName, {
+            ...JSON.parse(JSON.stringify(battleRoomData)),
+            timeFightStarts: Date.now(),
+            battleMoves: [
+              {
+                authorMove: null,
+                opponentMove: null,
+                time: Date.now(),
+                endTime: Date.now() + 1000 * 120,
+              },
+            ],
+          }),
+
+          await upsertUserData(battleRoomData.authorData.userId, {
+            ...userData,
+            battle: {
+              ...userData.battle,
+              isInBattle: true,
+            },
+          }),
+
+          await upsertUserData(opponent.userId, {
+            ...opponent,
+            battle: {
+              ...opponent.battle,
+              isInBattle: true,
+            },
+          }),
+        ]);
+
+        return NextResponse.json(
+          { message: "Fight is started." },
+          { status: 200 }
+        );
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      }
+    }
+
+    let isMove = false;
+    if (data.type === "battle-fight-move") {
+      const request = data as {
+        type: string;
+        attack: "head" | "body" | "hands" | "lags";
+        block: "head" | "body" | "hands" | "lags";
+      };
+
+      if (isMove) throw new Error("Server is busy!");
+      isMove = true;
+
+      const moveArr = ["head", "body", "hands", "lags"];
+
+      try {
+        if (!userData.battle.isInBattle) throw new Error("You cant fight!");
+
+        let battleRooms = await getBattleRooms();
+
+        let room = battleRooms.find(
+          (room) =>
+            room.authorName === userData?.playerName ||
+            room.opponentName === userData?.playerName
+        );
+
+        if (!room) throw new Error("Cant find room!");
+
+        if (room.timeFightEnds) throw new Error("Fight is end!");
+
+        const isAuthor = room.authorName === userData.playerName;
+
+        if (
+          !room.battleMoves[room.battleMoves.length - 1].authorMove ||
+          !room.battleMoves[room.battleMoves.length - 1].opponentMove
+        ) {
+          if (
+            room.battleMoves[room.battleMoves.length - 1].endTime + 15000 <
+            Date.now()
+          ) {
+            // Нет противника, проигрыш по таймауту
+            const authorData = await getUserDataByName(room!.authorName);
+            const opponentData = await getUserDataByName(room!.opponentName);
+
+            await Promise.all([
+              await upsertUserData(authorData!.userId, {
+                ...authorData,
+                currentHP: Boolean(
+                  room.battleMoves[room.battleMoves.length - 1].authorMove
+                )
+                  ? authorData?.currentHP
+                  : 0,
+                battle: {
+                  ...authorData?.battle,
+                  isBattleOver: true,
+                },
+              }),
+
+              await upsertUserData(opponentData!.userId, {
+                ...opponentData,
+                currentHP: Boolean(
+                  room.battleMoves[room.battleMoves.length - 1].opponentMove
+                )
+                  ? opponentData?.currentHP
+                  : 0,
+                battle: {
+                  ...opponentData?.battle,
+                  isBattleOver: true,
+                },
+              }),
+
+              await updateBattleRoom(room!.authorName, {
+                ...room,
+                authorData: {
+                  ...authorData,
+                  currentHP: !room.battleMoves[room.battleMoves.length - 1]
+                    .authorMove
+                    ? authorData?.currentHP
+                    : 0,
+                },
+                opponentData: {
+                  ...opponentData,
+                  currentHP: !room.battleMoves[room.battleMoves.length - 1]
+                    .opponentMove
+                    ? opponentData?.currentHP
+                    : 0,
+                },
+                battleMoves: [...room.battleMoves],
+                timeFightEnds: Date.now(),
+              }),
+            ]);
+
+            return NextResponse.json(
+              { message: "End by timeout." },
+              { status: 200 }
+            );
+          }
+          if (
+            isAuthor &&
+            room.battleMoves[room.battleMoves.length - 1].authorMove?.attack
+          )
+            NextResponse.json(
+              { message: "Move already done." },
+              { status: 200 }
+            );
+
+          if (
+            !isAuthor &&
+            room.battleMoves[room.battleMoves.length - 1].opponentMove?.attack
+          )
+            NextResponse.json(
+              { message: "Move already done." },
+              { status: 200 }
+            );
+        }
+
+        const battleMoves = [...room.battleMoves];
+
+        if (isAuthor) {
+          battleMoves[battleMoves.length - 1].authorMove = {
+            attack: request.attack,
+            block: request.block,
+          };
+          await updateBattleRoom(room.authorName, {
+            ...room,
+            battleMoves: battleMoves,
+          });
+        }
+
+        if (!isAuthor) {
+          battleMoves[battleMoves.length - 1].opponentMove = {
+            attack: request.attack,
+            block: request.block,
+          };
+          await updateBattleRoom(room.authorName, {
+            ...room,
+            battleMoves: battleMoves,
+          });
+        }
+
+        battleRooms = await getBattleRooms();
+
+        room = battleRooms.find(
+          (room) =>
+            room.authorName === userData?.playerName ||
+            room.opponentName === userData?.playerName
+        );
+
+        if (
+          !room!.battleMoves[room!.battleMoves.length - 1].authorMove ||
+          !room!.battleMoves[room!.battleMoves.length - 1].opponentMove
+        ) {
+          return NextResponse.json(
+            { message: "Move is Done." },
+            { status: 200 }
+          );
+        }
+
+        const userAttackCalculated = Math.round(
+          getRandomInRange(
+            room!.authorData.stats.attack * 0.7,
+            room!.authorData.stats.attack * 1.2
+          ) / 2
+        );
+        const userDefCalculated = Math.round(
+          getRandomInRange(
+            room!.authorData.stats.defense * 0.7,
+            room!.authorData.stats.defense * 1.2
+          )
+        );
+        const opponentAttackCalculated = Math.round(
+          getRandomInRange(
+            room!.opponentData.stats.attack * 0.7,
+            room!.opponentData.stats.attack * 1.2
+          ) / 2
+        );
+        const opponentDefCalculated = Math.round(
+          getRandomInRange(
+            room!.opponentData.stats.defense * 0.7,
+            room!.opponentData.stats.defense * 1.2
+          )
+        );
+
+        let userAttackDmg =
+          userAttackCalculated * (1 - Math.round(opponentDefCalculated / 200)) -
+          Math.round(opponentDefCalculated / 4);
+        if (userAttackDmg < 1) userAttackDmg = 1;
+
+        let opponentAttackDmg =
+          opponentAttackCalculated * (1 - Math.round(userDefCalculated / 200)) -
+          Math.round(userDefCalculated / 4);
+        if (opponentAttackDmg < 1) opponentAttackDmg = 1;
+
+        let newCurrentHPUser = room!.authorData.currentHP;
+        let newCurrentHPOpponent = room!.opponentData.currentHP;
+
+        const authorAttack = room!.battleMoves[room!.battleMoves.length - 1]
+          .authorMove
+          ? room!.battleMoves[room!.battleMoves.length - 1].authorMove.attack
+          : moveArr[getRandomInRange(0, 3)];
+
+        const authorBLock = room!.battleMoves[room!.battleMoves.length - 1]
+          .authorMove
+          ? room!.battleMoves[room!.battleMoves.length - 1].authorMove.block
+          : moveArr[getRandomInRange(0, 3)];
+
+        const opponentAttack = room!.battleMoves[room!.battleMoves.length - 1]
+          .opponentMove
+          ? room!.battleMoves[room!.battleMoves.length - 1].opponentMove.attack
+          : moveArr[getRandomInRange(0, 3)];
+
+        const opponentBlock = room!.battleMoves[room!.battleMoves.length - 1]
+          .opponentMove
+          ? room!.battleMoves[room!.battleMoves.length - 1].opponentMove.block
+          : moveArr[getRandomInRange(0, 3)];
+
+        if (authorAttack === opponentBlock) userAttackDmg = 0;
+        newCurrentHPOpponent = newCurrentHPOpponent - userAttackDmg;
+        if (newCurrentHPOpponent < 1) newCurrentHPOpponent = 0;
+
+        if (authorBLock === opponentAttack) opponentAttackDmg = 0;
+        newCurrentHPUser = newCurrentHPUser - opponentAttackDmg;
+        if (newCurrentHPUser < 1) newCurrentHPUser = 0;
+
+        const authorData = await getUserDataByName(room!.authorName);
+        const opponentData = await getUserDataByName(room!.opponentName);
+
+        battleMoves.push({
+          prevAuthHitDmg: userAttackDmg,
+          prevAuthHitPart: authorAttack,
+          prevOppHitDmg: opponentAttackDmg,
+          prevOppHitPart: opponentAttack,
+          authorMove: null,
+          opponentMove: null,
+          time: Date.now(),
+          endTime: Date.now() + 1000 * 30,
+        });
+
+        if (newCurrentHPOpponent < 1 || newCurrentHPUser < 1) {
+          await Promise.all([
+            await upsertUserData(authorData!.userId, {
+              ...authorData,
+              currentHP: newCurrentHPUser,
+              battle: {
+                ...authorData?.battle,
+                isBattleOver: true,
+              },
+            }),
+
+            await upsertUserData(opponentData!.userId, {
+              ...opponentData,
+              currentHP: newCurrentHPOpponent,
+              battle: {
+                ...opponentData?.battle,
+                isBattleOver: true,
+              },
+            }),
+
+            await updateBattleRoom(room!.authorName, {
+              ...room,
+              authorData: {
+                ...authorData,
+                currentHP: newCurrentHPUser,
+              },
+              opponentData: {
+                ...opponentData,
+                currentHP: newCurrentHPOpponent,
+              },
+              battleMoves: battleMoves,
+              timeFightEnds: Date.now(),
+            }),
+          ]);
+
+          return NextResponse.json(
+            { message: "Move is Done." },
+            { status: 200 }
+          );
+        }
+
+        await Promise.all([
+          await upsertUserData(authorData!.userId, {
+            ...authorData,
+            currentHP: newCurrentHPUser,
+          }),
+
+          await upsertUserData(opponentData!.userId, {
+            ...opponentData,
+            currentHP: newCurrentHPOpponent,
+          }),
+
+          await updateBattleRoom(room!.authorName, {
+            ...room,
+            authorData: {
+              ...authorData,
+              currentHP: newCurrentHPUser,
+            },
+            opponentData: {
+              ...opponentData,
+              currentHP: newCurrentHPOpponent,
+            },
+            battleMoves: battleMoves,
+          }),
+        ]);
+
+        return NextResponse.json({ message: "Move done+" }, { status: 200 });
+      } catch (error) {
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
+      } finally {
+        isMove = false;
+      }
+    }
+
+    if (data.type === "end-battle-fight") {
+      try {
+        if (!userData.battle.isBattleOver)
+          throw new Error("You don't have 'battle over' status!");
+
+        const bonusExp =
+          userData.currentHP > 0
+            ? Math.round(userData.base_experience * 0.3)
+            : 0;
+
+        await upsertUserData(userData!.userId, {
+          ...userData,
+          currentExp: userData.currentExp + bonusExp,
+          battle: {
+            isInBattle: false,
+            isBattleCreated: false,
+            isInBattleRequest: false,
+            isBattleOver: false,
+          },
+        });
+
+        await deleteBattleRoom(userData.userId, userData);
+        return NextResponse.json({ message: "Battle is end" }, { status: 200 });
       } catch (error) {
         return NextResponse.json(
           { error: (error as Error).message },
