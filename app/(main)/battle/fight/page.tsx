@@ -38,6 +38,9 @@ export default function FightPage() {
   const [opponentData, setOpponentData] = useState<null | BattleRoomsUserProps>(
     null
   );
+  const [authorData, setAuthorData] = useState<null | BattleRoomsUserProps>(
+    null
+  );
   const [roomData, setRoomData] = useState<null | BattleRoomsProps>(null);
   const [opponentName, setOpponentName] = useState("");
   const [isDialog, setIsDialog] = useState(false);
@@ -90,6 +93,7 @@ export default function FightPage() {
             setRoomData(room);
             setOpponentData(room.opponentData);
             setOpponentName(room.opponentName);
+            setAuthorData(room.authorData);
           }
         } else {
           const room = rooms.find(
@@ -100,6 +104,7 @@ export default function FightPage() {
             setRoomData(room);
             setOpponentData(room.authorData);
             setOpponentName(room.authorName);
+            setAuthorData(room.opponentData);
           }
         }
         setMoveLoading(false);
@@ -107,7 +112,7 @@ export default function FightPage() {
         setMoveLoading(false);
         console.error((error as Error).message);
       } finally {
-        if (roomData && roomData?.timeFightEnds) {
+        if (fetchedData.battle.isBattleOver) {
           router.push("/battle/fight/end");
         }
       }
@@ -174,15 +179,15 @@ export default function FightPage() {
   }, [fetchedData]);
 
   useEffect(() => {
-    if (fetchedData && opponentData) {
-      setHpPercentage((fetchedData.currentHP / fetchedData.stats.hp) * 100);
+    if (fetchedData && opponentData && authorData) {
+      setHpPercentage((authorData.currentHP / authorData.stats.hp) * 100);
       setOpponentHpPercentage(
         (opponentData.currentHP / opponentData.stats.hp) * 100
       );
     }
-  }, [fetchedData, opponentData]);
+  }, [fetchedData, opponentData, authorData]);
 
-  if (loading || fetchedData === undefined || !opponentData) {
+  if (loading || fetchedData === undefined || !opponentData || !authorData) {
     return <StaticBackdrop />;
   }
 
@@ -226,7 +231,7 @@ export default function FightPage() {
                 <Typography variant="h6">{fetchedData.playerName}</Typography>
                 <List>
                   <ListItem>
-                    HP: {`${fetchedData.currentHP}/${fetchedData.stats.hp}`}
+                    HP: {`${authorData.currentHP}/${authorData.stats.hp}`}
                   </ListItem>
                   <ListItem>
                     <LinearProgress
